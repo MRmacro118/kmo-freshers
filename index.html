@@ -105,8 +105,8 @@
   <nav>
     <div><strong>Cash Entry System</strong></div>
     <div>
-      <a href="#">Home</a>
-      <a href="#summary">Summary</a>
+      <a href="index.html">Home</a>
+      <a href="summary.html">Summary</a>
     </div>
   </nav>
   <h1>Enter Transaction</h1>
@@ -115,7 +115,11 @@
     <input type="text" id="name" required />
 
     <label for="stream">Stream:</label>
-    <input type="text" id="stream" required />
+    <select id="stream">
+      <option value="Plus One">Plus One</option>
+      <option value="Plus Two">Plus Two</option>
+      <option value="Degree">Degree</option>
+    </select>
 
     <label for="mode">Mode:</label>
     <select id="mode">
@@ -137,14 +141,9 @@
     <button id="submit">Submit Entry</button>
   </div>
 
-  <div class="summary" id="summary">
-    <h2>Summary</h2>
-    <div id="entries"></div>
-  </div>
-
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAOKKVp7hgeM_o563UJ1SmcJBIgzL50_HM",
@@ -165,26 +164,10 @@
     const amountInput = document.getElementById("amount");
     const receiverInput = document.getElementById("receiver");
     const submitBtn = document.getElementById("submit");
-    const entriesDiv = document.getElementById("entries");
-
-    async function loadEntries() {
-      const querySnapshot = await getDocs(collection(db, "entries"));
-      entriesDiv.innerHTML = "";
-      let total = 0;
-      querySnapshot.forEach((doc) => {
-        const entry = doc.data();
-        total += entry.amount;
-        entriesDiv.innerHTML += `
-          <div class="entry">
-            <strong>${entry.name}</strong> gave ₹${entry.amount} to <strong>${entry.receiver}</strong> (${entry.mode}, ${entry.stream})
-          </div>`;
-      });
-      entriesDiv.innerHTML += `<div class="entry"><strong>Total Received: ₹${total}</strong></div>`;
-    }
 
     submitBtn.onclick = async () => {
       const name = nameInput.value.trim();
-      const stream = streamInput.value.trim();
+      const stream = streamInput.value;
       const mode = modeInput.value;
       const amount = parseFloat(amountInput.value);
       const receiver = receiverInput.value;
@@ -204,12 +187,9 @@
       });
 
       nameInput.value = "";
-      streamInput.value = "";
+      streamInput.value = "Plus One";
       amountInput.value = "";
-      loadEntries();
     };
-
-    loadEntries();
   </script>
 </body>
 </html>
