@@ -2,219 +2,168 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Cash Entry</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cash Entry System</title>
   <style>
     body {
-      font-family: 'Segoe UI', sans-serif;
-      background: #f2f4f8;
-      text-align: center;
-      margin: 2em;
+      font-family: Arial, sans-serif;
+      background: #f4f6f8;
+      padding: 20px;
+      margin: 0;
     }
-    .screen {
-      display: none;
-    }
-    .active {
-      display: block;
-    }
-    button {
-      margin: 1em;
-      padding: 0.7em 1.5em;
-      background-color: #4CAF50;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      font-size: 1em;
-    }
-    button:hover {
-      background-color: #45a049;
-    }
-    select, input[type="text"], input[type="number"] {
-      padding: 0.75em;
-      margin: 0.75em 0;
-      font-size: 1em;
-      width: 90%;
-      max-width: 400px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-    }
-    .radio-group {
-      display: flex;
-      justify-content: center;
-      gap: 1em;
-      margin: 1em 0;
-    }
-    .radio-group label {
-      border-radius: 6px;
-      overflow: hidden;
-    }
-    .radio-group input[type="radio"] {
-      display: none;
-    }
-    .radio-group span {
-      display: inline-block;
-      padding: 0.7em 1.5em;
-      background: #fff;
-      border: 1px solid #ccc;
-      transition: all 0.2s ease;
-      cursor: pointer;
-    }
-    .radio-group input[type="radio"]:checked + span {
-      background-color: #4CAF50;
-      color: white;
-      border-color: #4CAF50;
-    }
-    table {
-      margin: 1em auto;
-      border-collapse: collapse;
-      width: 90%;
+    .container {
+      max-width: 500px;
+      margin: auto;
       background: white;
-    }
-    th, td {
-      border: 1px solid #ddd;
-      padding: 0.75em;
-    }
-    th {
-      background-color: #4CAF50;
-      color: white;
-    }
-    .entry-box {
-      background: white;
-      padding: 1.5em;
-      margin: 1em auto;
-      width: 90%;
-      max-width: 600px;
+      padding: 30px;
       border-radius: 10px;
-      box-shadow: 0 0 15px rgba(0,0,0,0.1);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
     }
-    .confirm-line {
-      text-align: left;
-      margin: 0.5em 0;
+    h2 {
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: bold;
+    }
+    input, select, button {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 20px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+    .btn {
+      background: #007BFF;
+      color: white;
+      font-weight: bold;
+      border: none;
+      cursor: pointer;
+    }
+    .btn:hover {
+      background: #0056b3;
+    }
+    .summary {
+      margin-top: 20px;
+      background: #fff;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    .pill-button {
+      display: inline-block;
+      padding: 10px 20px;
+      margin: 5px;
+      border: 2px solid #007BFF;
+      border-radius: 30px;
+      cursor: pointer;
+      background-color: white;
+      color: #007BFF;
+      transition: 0.2s;
+    }
+    .pill-button.selected {
+      background-color: #007BFF;
+      color: white;
     }
   </style>
 </head>
 <body>
-  <div id="home" class="screen active">
-    <h1>Cash Entry System</h1>
-    <button onclick="goTo('cash')">Cash In</button>
-    <button onclick="goTo('summary')">Summary</button>
-  </div>
-
-  <div id="cash" class="screen">
-    <div class="entry-box">
-      <h2>Cash Entry</h2>
-      <label>Select Stream:</label><br>
-      <div class="radio-group">
-        <label><input type="radio" name="stream" value="Science" checked /><span>Science</span></label>
-        <label><input type="radio" name="stream" value="Commerce" /><span>Commerce</span></label>
-        <label><input type="radio" name="stream" value="Humanities" /><span>Humanities</span></label>
+  <div class="container" id="form-container">
+    <h2>Cash Entry Form</h2>
+    <div>
+      <label>Select Stream</label>
+      <div>
+        <span class="pill-button" onclick="selectStream(this, 'Science')">Science</span>
+        <span class="pill-button" onclick="selectStream(this, 'Commerce')">Commerce</span>
+        <span class="pill-button" onclick="selectStream(this, 'Humanities')">Humanities</span>
       </div>
-      <input id="name" type="text" placeholder="Enter Name" required /><br>
-      <select id="mode">
-        <option value="Cash">Cash</option>
-        <option value="Bank">Bank</option>
-      </select><br>
-      <button onclick="confirmEntry()">Next</button>
     </div>
+    <label for="name">Name</label>
+    <input type="text" id="name" required />
+
+    <label for="mode">Mode</label>
+    <select id="mode">
+      <option value="Cash">Cash</option>
+      <option value="Bank">Bank</option>
+    </select>
+
+    <label for="amount">Amount Received</label>
+    <input type="number" id="amount" required />
+
+    <button class="btn" onclick="handleSubmit()">Submit</button>
+    <button class="btn" onclick="showSummary()">View Summary</button>
   </div>
 
-  <div id="confirm" class="screen">
-    <div class="entry-box">
-      <h3>Confirm Entry?</h3>
-      <div class="confirm-line" id="confirmStream"></div>
-      <div class="confirm-line" id="confirmName"></div>
-      <div class="confirm-line" id="confirmMode"></div>
-      <input id="amount" type="number" placeholder="Enter amount received" /><br>
-      <button onclick="saveEntry()">Yes</button>
-      <button onclick="goTo('home')">Cancel</button>
-    </div>
-  </div>
-
-  <div id="summary" class="screen">
-    <div class="entry-box">
-      <h2>Summary</h2>
-      <table>
-        <thead>
-          <tr><th>Name</th><th>Stream</th><th>Mode</th><th>Received</th></tr>
-        </thead>
-        <tbody id="summaryBody"></tbody>
-      </table>
-      <p><strong>Total Received:</strong> ₹<span id="totalSum">0</span></p>
-      <button onclick="goTo('home')">Home</button>
-    </div>
+  <div class="container" id="summary-container" style="display: none;">
+    <h2>Summary</h2>
+    <div id="summary-list"></div>
+    <div id="total"></div>
+    <button class="btn" onclick="goHome()">Back</button>
   </div>
 
   <script>
-    const entries = [];
-    let currentEntry = {};
-    const apiUrl = "https://script.google.com/macros/s/AKfycbxvRXbHcAHOYsMo6TxqYoomUR_lqyrlb0oMwzxOQ0yHtZ-PNdkYjTgkK128-R7HO2Sq/exec";
+    let selectedStream = '';
 
-    function goTo(screen) {
-      document.querySelectorAll('.screen').forEach(div => div.classList.remove('active'));
-      document.getElementById(screen).classList.add('active');
-      if (screen === 'summary') fetchSummary();
+    function selectStream(el, stream) {
+      document.querySelectorAll('.pill-button').forEach(btn => btn.classList.remove('selected'));
+      el.classList.add('selected');
+      selectedStream = stream;
     }
 
-    function confirmEntry() {
-      const stream = document.querySelector('input[name="stream"]:checked').value;
+    function handleSubmit() {
       const name = document.getElementById('name').value.trim();
       const mode = document.getElementById('mode').value;
+      const amount = parseFloat(document.getElementById('amount').value);
 
-      if (!name) {
-        alert("Name is required!");
+      if (!selectedStream || !name || isNaN(amount)) {
+        alert("All fields are required.");
         return;
       }
 
-      currentEntry = {
-        stream,
-        name,
-        mode,
-        received: 0
-      };
-
-      document.getElementById('confirmStream').innerText = `Stream: ${stream}`;
-      document.getElementById('confirmName').innerText = `Name: ${name}`;
-      document.getElementById('confirmMode').innerText = `Mode: ${mode}`;
-
-      goTo('confirm');
+      fetch("https://script.google.com/macros/s/AKfycbxvRXbHcAHOYsMo6TxqYoomUR_lqyrlb0oMwzxOQ0yHtZ-PNdkYjTgkK128-R7HO2Sq/exec", {
+        method: "POST",
+        body: JSON.stringify({ name, stream: selectedStream, mode, amount })
+      })
+        .then(res => res.text())
+        .then(() => {
+          alert("Submitted successfully");
+          document.getElementById('name').value = '';
+          document.getElementById('amount').value = '';
+          selectedStream = '';
+          document.querySelectorAll('.pill-button').forEach(btn => btn.classList.remove('selected'));
+        });
     }
 
-    function saveEntry() {
-      const amount = parseFloat(document.getElementById('amount').value) || 0;
-      currentEntry.received = amount;
-
-      // Send to Google Sheet
-      fetch(apiUrl, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(currentEntry)
-      });
-
-      document.getElementById('name').value = "";
-      document.getElementById('amount').value = "";
-      goTo('home');
-    }
-
-    function fetchSummary() {
-      fetch(apiUrl)
+    function showSummary() {
+      document.getElementById('form-container').style.display = 'none';
+      document.getElementById('summary-container').style.display = 'block';
+      fetch("https://script.google.com/macros/s/AKfycbxvRXbHcAHOYsMo6TxqYoomUR_lqyrlb0oMwzxOQ0yHtZ-PNdkYjTgkK128-R7HO2Sq/exec")
         .then(res => res.json())
         .then(data => {
-          const tbody = document.getElementById('summaryBody');
-          tbody.innerHTML = '';
+          const list = document.getElementById('summary-list');
+          list.innerHTML = '';
           let total = 0;
           data.forEach(entry => {
-            tbody.innerHTML += `<tr>
-              <td>${entry.name}</td>
-              <td>${entry.stream}</td>
-              <td>${entry.mode}</td>
-              <td>₹${entry.received}</td>
-            </tr>`;
-            total += Number(entry.received);
+            total += Number(entry.amount);
+            const div = document.createElement('div');
+            div.className = 'summary';
+            div.innerHTML = `
+              <strong>${entry.name}</strong> <br>
+              Stream: ${entry.stream} <br>
+              Mode: ${entry.mode} <br>
+              Received: ₹${entry.amount}
+            `;
+            list.appendChild(div);
           });
-          document.getElementById('totalSum').innerText = total;
+          document.getElementById('total').innerHTML = `<h3>Total Received: ₹${total}</h3>`;
         });
+    }
+
+    function goHome() {
+      document.getElementById('form-container').style.display = 'block';
+      document.getElementById('summary-container').style.display = 'none';
     }
   </script>
 </body>
