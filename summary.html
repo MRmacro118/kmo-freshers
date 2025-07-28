@@ -3,68 +3,61 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Summary</title>
+  <title>Transaction Summary</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
   <script type="module" src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js"></script>
   <script type="module" src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <link rel="shortcut icon" href="favicon.png" type="image/x-icon">
   <style>
+    * {
+      box-sizing: border-box;
+    }
     body {
       font-family: 'Inter', sans-serif;
       background: #f9f9f9;
       margin: 0;
       padding: 20px;
-      color: #111;
+      color: #222;
     }
-
     h1 {
       text-align: center;
-      font-size: 28px;
       margin-bottom: 30px;
+      font-size: 1.8rem;
     }
-
     .summary {
       background: #fff;
       padding: 20px;
-      border-radius: 10px;
-      max-width: 900px;
+      border-radius: 12px;
+      max-width: 800px;
       margin: 0 auto;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
     }
-
     .entry {
       display: flex;
-      flex-direction: column;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
       border-bottom: 1px solid #eee;
-      padding: 12px 0;
-      font-size: 16px;
+      padding: 10px 0;
+      font-size: 15px;
     }
-
     .entry:last-child {
       border-bottom: none;
     }
-
-    .entry span {
-      margin-bottom: 4px;
+    .entry > span {
+      flex: 1 1 100%;
     }
-
-    @media (min-width: 600px) {
-      .entry {
-        flex-direction: row;
-        justify-content: space-between;
-        align-items: center;
-      }
-      .entry span {
-        margin-bottom: 0;
+    @media (min-width: 500px) {
+      .entry > span {
+        flex: 1;
       }
     }
-
     button {
       display: block;
       margin: 30px auto 0;
       padding: 12px 24px;
-      background-color: #10b981; /* green */
+      background-color: #22c55e; /* green */
       color: white;
       border: none;
       border-radius: 8px;
@@ -72,9 +65,8 @@
       cursor: pointer;
       transition: background 0.2s ease;
     }
-
     button:hover {
-      background-color: #059669;
+      background-color: #16a34a; /* darker green */
     }
   </style>
 </head>
@@ -126,8 +118,11 @@
         const div = document.createElement("div");
         div.className = "entry";
         div.innerHTML = `
-          <span><strong>${data.name}</strong> → <strong>${data.receiver}</strong></span>
-          <span>₹${data.amount} | ${data.stream} | ${data.mode}</span>
+          <span><strong>${data.name}</strong></span>
+          <span>₹${data.amount}</span>
+          <span>${data.stream}</span>
+          <span>${data.mode}</span>
+          <span><strong>${data.receiver}</strong></span>
         `;
         entryList.appendChild(div);
       });
