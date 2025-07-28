@@ -67,11 +67,27 @@
       background-color: #007BFF;
       color: white;
     }
+    .popup {
+      background: #dff0d8;
+      color: #3c763d;
+      padding: 10px;
+      border-radius: 5px;
+      margin-bottom: 15px;
+      text-align: center;
+      display: none;
+    }
   </style>
 </head>
 <body>
-  <div class="container" id="form-container">
+  <div class="container" id="home-container">
+    <h2>Cash Entry System</h2>
+    <button class="btn" onclick="goToCashEntry()">Cash In</button>
+    <button class="btn" onclick="showSummary()">View Summary</button>
+  </div>
+
+  <div class="container" id="form-container" style="display: none;">
     <h2>Cash Entry Form</h2>
+    <div class="popup" id="popup">Submitted successfully!</div>
     <div>
       <label>Select Stream</label>
       <div>
@@ -93,7 +109,7 @@
     <input type="number" id="amount" required />
 
     <button class="btn" onclick="handleSubmit()">Submit</button>
-    <button class="btn" onclick="showSummary()">View Summary</button>
+    <button class="btn" onclick="goHome()">Back</button>
   </div>
 
   <div class="container" id="summary-container" style="display: none;">
@@ -112,6 +128,11 @@
       selectedStream = stream;
     }
 
+    function goToCashEntry() {
+      document.getElementById('home-container').style.display = 'none';
+      document.getElementById('form-container').style.display = 'block';
+    }
+
     function handleSubmit() {
       const name = document.getElementById('name').value.trim();
       const mode = document.getElementById('mode').value;
@@ -128,7 +149,10 @@
       })
         .then(res => res.text())
         .then(() => {
-          alert("Submitted successfully");
+          document.getElementById('popup').style.display = 'block';
+          setTimeout(() => {
+            document.getElementById('popup').style.display = 'none';
+          }, 2000);
           document.getElementById('name').value = '';
           document.getElementById('amount').value = '';
           selectedStream = '';
@@ -137,6 +161,7 @@
     }
 
     function showSummary() {
+      document.getElementById('home-container').style.display = 'none';
       document.getElementById('form-container').style.display = 'none';
       document.getElementById('summary-container').style.display = 'block';
       fetch("https://script.google.com/macros/s/AKfycbxvRXbHcAHOYsMo6TxqYoomUR_lqyrlb0oMwzxOQ0yHtZ-PNdkYjTgkK128-R7HO2Sq/exec")
@@ -162,7 +187,8 @@
     }
 
     function goHome() {
-      document.getElementById('form-container').style.display = 'block';
+      document.getElementById('home-container').style.display = 'block';
+      document.getElementById('form-container').style.display = 'none';
       document.getElementById('summary-container').style.display = 'none';
     }
   </script>
