@@ -82,7 +82,14 @@
       </select>
 
       <label for="mode">Payment Mode</label>
-      <input type="text" id="mode" placeholder="eg. Cash, GPay..." required />
+      <select id="mode" required>
+        <option value="">-- Select Mode --</option>
+        <option value="Cash">Cash</option>
+        <option value="GPay">GPay</option>
+        <option value="PhonePe">PhonePe</option>
+        <option value="Paytm">Paytm</option>
+        <option value="Other">Other</option>
+      </select>
 
       <label for="amount">Amount</label>
       <input type="number" id="amount" required />
@@ -94,7 +101,6 @@
         <option value="navaf">Navaf</option>
         <option value="ajas">Ajas</option>
         <option value="minhaj">Minhaj</option>
-        <!-- Add more names directly in code if needed -->
       </select>
 
       <button type="submit">Submit Entry</button>
@@ -129,7 +135,7 @@
 
       const name = document.getElementById('name').value.trim();
       const stream = document.getElementById('stream').value;
-      const mode = document.getElementById('mode').value.trim();
+      const mode = document.getElementById('mode').value;
       const amount = parseFloat(document.getElementById('amount').value);
       const receiver = document.getElementById('receiver').value;
 
