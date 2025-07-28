@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Summary</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <script type="module" src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js"></script>
+  <script type="module" src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #f9f9f9;
+      margin: 0;
+      padding: 20px;
+      color: #222;
+    }
+    h1 {
+      text-align: center;
+    }
+    .summary {
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      max-width: 800px;
+      margin: 0 auto;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    .entry {
+      border-bottom: 1px solid #eee;
+      padding: 10px 0;
+    }
+    .entry:last-child {
+      border-bottom: none;
+    }
+    button {
+      display: block;
+      margin: 20px auto;
+      padding: 12px 20px;
+      background-color: #4caf50;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+  </style>
+</head>
+<body>
+  <h1>Transaction Summary</h1>
+  <div class="summary" id="entryList"></div>
+  <button id="exportBtn">Download as Excel</button>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
+    import { getFirestore, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAOKKVp7hgeM_o563UJ1SmcJBIgzL50_HM",
+      authDomain: "cash-entry-19c6c.firebaseapp.com",
+      projectId: "cash-entry-19c6c",
+      storageBucket: "cash-entry-19c6c.firebasestorage.app",
+      messagingSenderId: "193833436019",
+      appId: "1:193833436019:web:5f9d119a75fd2974ca3b06",
+      measurementId: "G-KFJFRPWP04"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const entryList = document.getElementById("entryList");
+    const exportBtn = document.getElementById("exportBtn");
+
+    let entriesData = [];
+
+    async function fetchEntries() {
+      const q = query(collection(db, "entries"), orderBy("timestamp", "desc"));
+      const snapshot = await getDocs(q);
+
+      entriesData = [];
+      entryList.innerHTML = "";
+
+      snapshot.forEach((doc) => {
+        const data = doc.data();
+        entriesData.push({
+          Name: data.name,
+          Stream: data.stream,
+          Mode: data.mode,
+          Amount: data.amount,
+          Receiver: data.receiver,
+          Time: data.timestamp
+        });
+
+        const div = document.createElement("div");
+        div.className = "entry";
+        div.innerHTML = `<strong>${data.name}</strong> | ₹${data.amount} | ${data.stream} | ${data.mode} → <strong>${data.receiver}</strong>`;
+        entryList.appendChild(div);
+      });
+    }
+
+    exportBtn.onclick = () => {
+      if (entriesData.length === 0) {
+        alert("No data to export!");
+        return;
+      }
+
+      const worksheet = XLSX.utils.json_to_sheet(entriesData);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Entries");
+      XLSX.writeFile(workbook, "cash-entries.xlsx");
+    };
+
+    fetchEntries();
+  </script>
+</body>
+</html>

@@ -8,135 +8,106 @@
   <script type="module" src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js"></script>
   <script type="module" src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js"></script>
   <style>
-    * {
-      box-sizing: border-box;
-      font-family: 'Inter', sans-serif;
-    }
     body {
+      font-family: 'Inter', sans-serif;
+      background: #f8f9fa;
       margin: 0;
-      padding: 0;
-      background: #f8fafc;
-      color: #1e293b;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      min-height: 100vh;
-    }
-    h1 {
-      margin-top: 30px;
-      font-size: 26px;
-      font-weight: 600;
+      padding: 20px;
     }
     .container {
-      background: white;
-      padding: 28px;
-      border-radius: 16px;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.05);
       max-width: 500px;
-      width: 90%;
-      margin-top: 20px;
+      margin: 0 auto;
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 24px;
     }
     label {
       display: block;
       margin-bottom: 6px;
-      font-weight: 500;
-      color: #334155;
+      font-weight: 600;
     }
     input, select {
       width: 100%;
-      padding: 10px 14px;
-      margin-bottom: 18px;
-      border: 1px solid #cbd5e1;
-      border-radius: 10px;
-      font-size: 15px;
-      background: #f9fafb;
-      transition: 0.2s;
-    }
-    input:focus, select:focus {
-      outline: none;
-      border-color: #22c55e;
-      background: #ffffff;
+      padding: 10px;
+      margin-bottom: 16px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 16px;
     }
     button {
-      background-color: #22c55e;
-      color: white;
-      padding: 12px;
-      border: none;
-      border-radius: 10px;
-      font-size: 16px;
-      cursor: pointer;
       width: 100%;
-      transition: 0.2s;
+      padding: 12px;
+      background-color: #4CAF50;
+      color: white;
+      font-size: 16px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
     }
     button:hover {
-      background-color: #16a34a;
+      background-color: #45a049;
     }
-    .summary {
-      margin-top: 40px;
-      width: 100%;
-      max-width: 600px;
-      background: #0f172a;
-      color: #f8fafc;
-      padding: 20px;
-      border-radius: 16px;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+    .link-summary {
+      text-align: center;
+      margin-top: 20px;
+      font-weight: 600;
     }
-    .summary h2 {
-      margin-bottom: 18px;
-      font-weight: 500;
+    .link-summary a {
+      color: #4CAF50;
+      text-decoration: none;
     }
-    .entry {
-      padding: 10px 0;
-      border-bottom: 1px solid #334155;
-    }
-    .entry:last-child {
-      border-bottom: none;
+    .link-summary a:hover {
+      text-decoration: underline;
     }
   </style>
 </head>
 <body>
-  <h1>Cash Entry Form</h1>
-
   <div class="container">
-    <label for="name">Given By:</label>
-    <input type="text" id="name" required />
+    <h1>Cash Entry</h1>
+    <form id="cashForm">
+      <label for="name">Name (Giver)</label>
+      <input type="text" id="name" required />
 
-    <label for="stream">Stream:</label>
-    <select id="stream">
-      <option value="Science">Science</option>
-      <option value="Commerce">Commerce</option>
-      <option value="Humanities">Humanities</option>
-    </select>
+      <label for="stream">Stream</label>
+      <select id="stream" required>
+        <option value="">-- Select Stream --</option>
+        <option value="Science">Science</option>
+        <option value="Commerce">Commerce</option>
+        <option value="Humanities">Humanities</option>
+      </select>
 
-    <label for="mode">Mode:</label>
-    <select id="mode">
-      <option value="Cash">Cash</option>
-      <option value="Online">Online</option>
-    </select>
+      <label for="mode">Payment Mode</label>
+      <input type="text" id="mode" placeholder="eg. Cash, GPay..." required />
 
-    <label for="amount">Amount (₹):</label>
-    <input type="number" id="amount" required />
+      <label for="amount">Amount</label>
+      <input type="number" id="amount" required />
 
-    <label for="receiver">Received By:</label>
-    <select id="receiver">
-      <option value="shibil">Shibil</option>
-      <option value="navaf">Navaf</option>
-      <option value="ajas">Ajas</option>
-      <option value="minhaj">Minhaj</option>
-      <option value="hashir">hashir</option>
-    </select>
+      <label for="receiver">Received By</label>
+      <select id="receiver" required>
+        <option value="">-- Select Receiver --</option>
+        <option value="shibil">Shibil</option>
+        <option value="navaf">Navaf</option>
+        <option value="ajas">Ajas</option>
+        <option value="minhaj">Minhaj</option>
+        <!-- Add more names directly in code if needed -->
+      </select>
 
-    <button id="submit">Submit Entry</button>
-  </div>
+      <button type="submit">Submit Entry</button>
+    </form>
 
-  <div class="summary">
-    <h2>Summary</h2>
-    <div id="entryList"></div>
+    <div class="link-summary">
+      <a href="summary.html">View Summary →</a>
+    </div>
   </div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAOKKVp7hgeM_o563UJ1SmcJBIgzL50_HM",
@@ -151,52 +122,33 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    const nameInput = document.getElementById("name");
-    const streamInput = document.getElementById("stream");
-    const modeInput = document.getElementById("mode");
-    const amountInput = document.getElementById("amount");
-    const receiverInput = document.getElementById("receiver");
-    const submitBtn = document.getElementById("submit");
-    const entryList = document.getElementById("entryList");
+    const form = document.getElementById('cashForm');
 
-    submitBtn.onclick = async () => {
-      const name = nameInput.value.trim();
-      const stream = streamInput.value;
-      const mode = modeInput.value;
-      const amount = parseFloat(amountInput.value);
-      const receiver = receiverInput.value;
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
 
-      if (!name || !stream || !amount || isNaN(amount)) {
-        alert("Please fill all fields correctly.");
-        return;
+      const name = document.getElementById('name').value.trim();
+      const stream = document.getElementById('stream').value;
+      const mode = document.getElementById('mode').value.trim();
+      const amount = parseFloat(document.getElementById('amount').value);
+      const receiver = document.getElementById('receiver').value;
+
+      try {
+        await addDoc(collection(db, 'entries'), {
+          name,
+          stream,
+          mode,
+          amount,
+          receiver,
+          timestamp: serverTimestamp()
+        });
+
+        form.reset();
+        alert('Entry submitted!');
+      } catch (error) {
+        console.error("Error adding document:", error);
+        alert('Something went wrong. Please try again.');
       }
-
-      await addDoc(collection(db, "entries"), {
-        name,
-        stream,
-        mode,
-        amount,
-        receiver,
-        timestamp: new Date().toISOString()
-      });
-
-      nameInput.value = "";
-      streamInput.value = "Science";
-      modeInput.value = "Cash";
-      amountInput.value = "";
-      receiverInput.value = "shibil";
-    };
-
-    const q = query(collection(db, "entries"), orderBy("timestamp", "desc"));
-    onSnapshot(q, (snapshot) => {
-      entryList.innerHTML = "";
-      snapshot.forEach((doc) => {
-        const data = doc.data();
-        const div = document.createElement("div");
-        div.className = "entry";
-        div.innerHTML = `<strong>${data.name}</strong> | ₹${data.amount} | ${data.stream} | ${data.mode} → <strong>${data.receiver}</strong>`;
-        entryList.appendChild(div);
-      });
     });
   </script>
 </body>
