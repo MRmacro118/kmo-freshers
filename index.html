@@ -1,195 +1,176 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Cash Entry System</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cash Entry App</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: #f4f6f8;
-      padding: 20px;
+      background: #f7f7f7;
+      margin: 0;
+      padding: 0;
+      text-align: center;
+    }
+    h1 {
+      background-color: #6200ea;
+      color: white;
+      padding: 1rem;
       margin: 0;
     }
     .container {
-      max-width: 500px;
-      margin: auto;
-      background: white;
-      padding: 30px;
-      border-radius: 10px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    }
-    h2 {
-      margin-bottom: 20px;
-      text-align: center;
-    }
-    label {
-      display: block;
-      margin-bottom: 8px;
-      font-weight: bold;
+      padding: 2rem;
     }
     input, select, button {
-      width: 100%;
-      padding: 10px;
-      margin-bottom: 20px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-    }
-    .btn {
-      background: #007BFF;
-      color: white;
-      font-weight: bold;
-      border: none;
-      cursor: pointer;
-    }
-    .btn:hover {
-      background: #0056b3;
-    }
-    .summary {
-      margin-top: 20px;
-      background: #fff;
-      padding: 15px;
-      border-radius: 8px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      display: block;
+      margin: 1rem auto;
+      padding: 0.5rem;
+      font-size: 1rem;
+      width: 80%;
+      max-width: 300px;
     }
     .pill-button {
       display: inline-block;
-      padding: 10px 20px;
-      margin: 5px;
-      border: 2px solid #007BFF;
-      border-radius: 30px;
+      background-color: #e0e0e0;
+      color: #333;
+      padding: 0.5rem 1rem;
+      margin: 0.3rem;
+      border-radius: 999px;
+      border: none;
       cursor: pointer;
-      background-color: white;
-      color: #007BFF;
-      transition: 0.2s;
     }
     .pill-button.selected {
-      background-color: #007BFF;
+      background-color: #6200ea;
       color: white;
     }
-    .popup {
-      background: #dff0d8;
-      color: #3c763d;
-      padding: 10px;
-      border-radius: 5px;
-      margin-bottom: 15px;
-      text-align: center;
-      display: none;
+    #summaryData {
+      margin-top: 2rem;
+    }
+    table {
+      width: 90%;
+      max-width: 600px;
+      margin: 1rem auto;
+      border-collapse: collapse;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 0.5rem;
+    }
+    th {
+      background-color: #eee;
     }
   </style>
 </head>
 <body>
-  <div class="container" id="home-container">
-    <h2>Cash Entry System</h2>
-    <button class="btn" onclick="goToCashEntry()">Cash In</button>
-    <button class="btn" onclick="showSummary()">View Summary</button>
-  </div>
+  <h1>Cash Entry</h1>
+  <div class="container">
+    <input type="text" id="name" placeholder="Name (giver)" required>
 
-  <div class="container" id="form-container" style="display: none;">
-    <h2>Cash Entry Form</h2>
-    <div class="popup" id="popup">Submitted successfully!</div>
     <div>
-      <label>Select Stream</label>
-      <div>
-        <span class="pill-button" onclick="selectStream(this, 'Science')">Science</span>
-        <span class="pill-button" onclick="selectStream(this, 'Commerce')">Commerce</span>
-        <span class="pill-button" onclick="selectStream(this, 'Humanities')">Humanities</span>
-      </div>
+      <button class="pill-button" onclick="selectStream('Science')">Science</button>
+      <button class="pill-button" onclick="selectStream('Commerce')">Commerce</button>
+      <button class="pill-button" onclick="selectStream('Humanities')">Humanities</button>
     </div>
-    <label for="name">Name</label>
-    <input type="text" id="name" required />
 
-    <label for="mode">Mode</label>
     <select id="mode">
       <option value="Cash">Cash</option>
-      <option value="Bank">Bank</option>
+      <option value="Online">Online</option>
     </select>
 
-    <label for="amount">Amount Received</label>
-    <input type="number" id="amount" required />
+    <input type="number" id="amount" placeholder="Amount" required>
 
-    <button class="btn" onclick="handleSubmit()">Submit</button>
-    <button class="btn" onclick="goHome()">Back</button>
+    <select id="receiver">
+      <option value="">--Select Receiver--</option>
+      <option value="shibil">Shibil</option>
+      <option value="navaf">Navaf</option>
+      <option value="ajas">Ajas</option>
+      <option value="minhaj">Minhaj</option>
+    </select>
+
+    <button onclick="handleSubmit()">Submit</button>
+    <button onclick="showSummary()">Show Summary</button>
+
+    <div id="summaryData"></div>
   </div>
 
-  <div class="container" id="summary-container" style="display: none;">
-    <h2>Summary</h2>
-    <div id="summary-list"></div>
-    <div id="total"></div>
-    <button class="btn" onclick="goHome()">Back</button>
-  </div>
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
 
   <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyAOKKVp7hgeM_o563UJ1SmcJBIgzL50_HM",
+      authDomain: "cash-entry-19c6c.firebaseapp.com",
+      projectId: "cash-entry-19c6c",
+      storageBucket: "cash-entry-19c6c.appspot.com",
+      messagingSenderId: "193833436019",
+      appId: "1:193833436019:web:5f9d119a75fd2974ca3b06",
+      measurementId: "G-KFJFRPWP04"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
     let selectedStream = '';
-
-    function selectStream(el, stream) {
-      document.querySelectorAll('.pill-button').forEach(btn => btn.classList.remove('selected'));
-      el.classList.add('selected');
+    function selectStream(stream) {
       selectedStream = stream;
-    }
-
-    function goToCashEntry() {
-      document.getElementById('home-container').style.display = 'none';
-      document.getElementById('form-container').style.display = 'block';
+      document.querySelectorAll('.pill-button').forEach(btn => {
+        btn.classList.remove('selected');
+        if (btn.textContent === stream) btn.classList.add('selected');
+      });
     }
 
     function handleSubmit() {
       const name = document.getElementById('name').value.trim();
       const mode = document.getElementById('mode').value;
       const amount = parseFloat(document.getElementById('amount').value);
+      const receivedBy = document.getElementById('receiver').value;
+      const stream = selectedStream;
 
-      if (!selectedStream || !name || isNaN(amount)) {
+      if (!stream || !name || isNaN(amount) || !receivedBy) {
         alert("All fields are required.");
         return;
       }
 
-      fetch("https://script.google.com/macros/s/AKfycbxvRXbHcAHOYsMo6TxqYoomUR_lqyrlb0oMwzxOQ0yHtZ-PNdkYjTgkK128-R7HO2Sq/exec", {
-        method: "POST",
-        body: JSON.stringify({ name, stream: selectedStream, mode, amount })
-      })
-        .then(res => res.text())
-        .then(() => {
-          document.getElementById('popup').style.display = 'block';
-          setTimeout(() => {
-            document.getElementById('popup').style.display = 'none';
-          }, 2000);
-          document.getElementById('name').value = '';
-          document.getElementById('amount').value = '';
-          selectedStream = '';
-          document.querySelectorAll('.pill-button').forEach(btn => btn.classList.remove('selected'));
-        });
+      db.collection("entries").add({
+        name,
+        stream,
+        mode,
+        amount,
+        receivedBy,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+      }).then(() => {
+        alert("Submitted successfully");
+        document.getElementById('name').value = '';
+        document.getElementById('amount').value = '';
+        document.getElementById('receiver').value = '';
+        document.querySelectorAll('.pill-button').forEach(btn => btn.classList.remove('selected'));
+      }).catch(err => {
+        alert("Error: " + err.message);
+      });
     }
 
     function showSummary() {
-      document.getElementById('home-container').style.display = 'none';
-      document.getElementById('form-container').style.display = 'none';
-      document.getElementById('summary-container').style.display = 'block';
-      fetch("https://script.google.com/macros/s/AKfycbxvRXbHcAHOYsMo6TxqYoomUR_lqyrlb0oMwzxOQ0yHtZ-PNdkYjTgkK128-R7HO2Sq/exec")
-        .then(res => res.json())
-        .then(data => {
-          const list = document.getElementById('summary-list');
-          list.innerHTML = '';
-          let total = 0;
-          data.forEach(entry => {
-            total += Number(entry.amount);
-            const div = document.createElement('div');
-            div.className = 'summary';
-            div.innerHTML = `
-              <strong>${entry.name}</strong> <br>
-              Stream: ${entry.stream} <br>
-              Mode: ${entry.mode} <br>
-              Received: ₹${entry.amount}
-            `;
-            list.appendChild(div);
-          });
-          document.getElementById('total').innerHTML = `<h3>Total Received: ₹${total}</h3>`;
-        });
-    }
+      const summaryDiv = document.getElementById('summaryData');
+      summaryDiv.innerHTML = '<p>Loading summary...</p>';
 
-    function goHome() {
-      document.getElementById('home-container').style.display = 'block';
-      document.getElementById('form-container').style.display = 'none';
-      document.getElementById('summary-container').style.display = 'none';
+      db.collection("entries").orderBy("timestamp", "desc").get().then(snapshot => {
+        let total = 0;
+        let html = `<table><tr><th>Giver</th><th>Stream</th><th>Mode</th><th>Amount</th><th>Received By</th></tr>`;
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          html += `<tr>
+            <td>${data.name}</td>
+            <td>${data.stream}</td>
+            <td>${data.mode}</td>
+            <td>₹${data.amount}</td>
+            <td>${data.receivedBy}</td>
+          </tr>`;
+          total += parseFloat(data.amount || 0);
+        });
+        html += `</table><p><strong>Total Received:</strong> ₹${total}</p>`;
+        summaryDiv.innerHTML = html;
+      });
     }
   </script>
 </body>
