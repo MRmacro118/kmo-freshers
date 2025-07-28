@@ -148,11 +148,12 @@
   <script>
     const entries = [];
     let currentEntry = {};
+    const apiUrl = "https://script.google.com/macros/s/AKfycbxvRXbHcAHOYsMo6TxqYoomUR_lqyrlb0oMwzxOQ0yHtZ-PNdkYjTgkK128-R7HO2Sq/exec";
 
     function goTo(screen) {
       document.querySelectorAll('.screen').forEach(div => div.classList.remove('active'));
       document.getElementById(screen).classList.add('active');
-      if (screen === 'summary') showSummary();
+      if (screen === 'summary') fetchSummary();
     }
 
     function confirmEntry() {
@@ -182,26 +183,38 @@
     function saveEntry() {
       const amount = parseFloat(document.getElementById('amount').value) || 0;
       currentEntry.received = amount;
-      entries.push(currentEntry);
+
+      // Send to Google Sheet
+      fetch(apiUrl, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(currentEntry)
+      });
+
       document.getElementById('name').value = "";
       document.getElementById('amount').value = "";
       goTo('home');
     }
 
-    function showSummary() {
-      const tbody = document.getElementById('summaryBody');
-      tbody.innerHTML = '';
-      let total = 0;
-      entries.forEach(entry => {
-        tbody.innerHTML += `<tr>
-          <td>${entry.name}</td>
-          <td>${entry.stream}</td>
-          <td>${entry.mode}</td>
-          <td>₹${entry.received}</td>
-        </tr>`;
-        total += Number(entry.received);
-      });
-      document.getElementById('totalSum').innerText = total;
+    function fetchSummary() {
+      fetch(apiUrl)
+        .then(res => res.json())
+        .then(data => {
+          const tbody = document.getElementById('summaryBody');
+          tbody.innerHTML = '';
+          let total = 0;
+          data.forEach(entry => {
+            tbody.innerHTML += `<tr>
+              <td>${entry.name}</td>
+              <td>${entry.stream}</td>
+              <td>${entry.mode}</td>
+              <td>₹${entry.received}</td>
+            </tr>`;
+            total += Number(entry.received);
+          });
+          document.getElementById('totalSum').innerText = total;
+        });
     }
   </script>
 </body>
