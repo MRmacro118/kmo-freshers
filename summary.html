@@ -155,8 +155,19 @@
 <body>
   <h1>KMO FRESHERS DAY - Summary</h1>
 
-  <div class="summary">
-    <!-- Small Total Bar -->
+      <div class="summary">
+    <div class="controls">
+      <select id="streamFilter">
+        <option value="All">All Streams</option>
+        <option value="Science">Science</option>
+        <option value="Commerce">Commerce</option>
+        <option value="Humanities">Humanities</option>
+      </select>
+    </div>
+    
+    <div id="entryList"></div>
+    
+    <!-- Small Total Bar at Bottom -->
     <div class="total-bar">
       <div class="total-main" id="totalMain">Total: ₹0</div>
       <div class="total-breakdown" id="totalBreakdown">
@@ -174,17 +185,8 @@
         </div>
       </div>
     </div>
-
-    <div class="controls">
-      <select id="streamFilter">
-        <option value="All">All Streams</option>
-        <option value="Science">Science</option>
-        <option value="Commerce">Commerce</option>
-        <option value="Humanities">Humanities</option>
-      </select>
-      <button id="exportBtn">Download Filtered Excel</button>
-    </div>
-    <div id="entryList"></div>
+    
+    <button id="exportBtn">Download Filtered Excel</button>
   </div>
 
   <script type="module">
