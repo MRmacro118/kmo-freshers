@@ -25,7 +25,7 @@
     h1 {
       text-align: center;
       font-size: 1.75rem;
-      margin-bottom: 2rem;
+      margin-bottom: 1.5rem;
       color: #222;
     }
 
@@ -36,6 +36,33 @@
       max-width: 900px;
       margin: 0 auto;
       box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+    }
+
+    .controls {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      margin-bottom: 1.2rem;
+      gap: 1rem;
+    }
+
+    select, button {
+      padding: 0.6rem 1rem;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      background: white;
+      cursor: pointer;
+    }
+
+    button {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+    }
+
+    button:hover {
+      background-color: #45a049;
     }
 
     .entry {
@@ -62,34 +89,33 @@
       color: #000;
     }
 
-    button {
-      display: block;
-      margin: 2rem auto 0;
-      padding: 0.8rem 1.6rem;
-      background-color: #4CAF50;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      font-size: 1rem;
-      cursor: pointer;
-      transition: background 0.2s ease;
-    }
-
-    button:hover {
-      background-color: #45a049;
-    }
-
     @media (max-width: 600px) {
       .entry span {
         flex: 1 1 100%;
+      }
+
+      .controls {
+        flex-direction: column;
+        align-items: stretch;
       }
     }
   </style>
 </head>
 <body>
   <h1>KMO FRESHERS DAY - Summary</h1>
-  <div class="summary" id="entryList"></div>
-  <button id="exportBtn">Download as Excel</button>
+
+  <div class="summary">
+    <div class="controls">
+      <select id="streamFilter">
+        <option value="All">All Streams</option>
+        <option value="Science">Science</option>
+        <option value="Commerce">Commerce</option>
+        <option value="Humanities">Humanities</option>
+      </select>
+      <button id="exportBtn">Download Filtered Excel</button>
+    </div>
+    <div id="entryList"></div>
+  </div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
@@ -110,27 +136,26 @@
 
     const entryList = document.getElementById("entryList");
     const exportBtn = document.getElementById("exportBtn");
+    const streamFilter = document.getElementById("streamFilter");
 
     let entriesData = [];
 
     async function fetchEntries() {
       const q = query(collection(db, "entries"), orderBy("timestamp", "desc"));
       const snapshot = await getDocs(q);
+      entriesData = snapshot.docs.map(doc => doc.data());
+      renderEntries();
+    }
 
-      entriesData = [];
+    function renderEntries() {
+      const filter = streamFilter.value;
       entryList.innerHTML = "";
 
-      snapshot.forEach((doc) => {
-        const data = doc.data();
-        entriesData.push({
-          Name: data.name,
-          Stream: data.stream,
-          Mode: data.mode,
-          Amount: data.amount,
-          Receiver: data.receiver,
-          Time: new Date(data.timestamp).toLocaleString()
-        });
+      const filtered = entriesData.filter(entry => 
+        filter === "All" || entry.stream === filter
+      );
 
+      filtered.forEach(data => {
         const div = document.createElement("div");
         div.className = "entry";
         div.innerHTML = `
@@ -144,16 +169,30 @@
     }
 
     exportBtn.onclick = () => {
-      if (entriesData.length === 0) {
+      const filter = streamFilter.value;
+      const filteredData = entriesData.filter(entry => 
+        filter === "All" || entry.stream === filter
+      ).map(data => ({
+        Name: data.name,
+        Stream: data.stream,
+        Mode: data.mode,
+        Amount: data.amount,
+        Receiver: data.receiver,
+        Time: new Date(data.timestamp).toLocaleString()
+      }));
+
+      if (filteredData.length === 0) {
         alert("No data to export!");
         return;
       }
 
-      const worksheet = XLSX.utils.json_to_sheet(entriesData);
+      const worksheet = XLSX.utils.json_to_sheet(filteredData);
       const workbook = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(workbook, worksheet, "Entries");
-      XLSX.writeFile(workbook, "kmo-cash-entries.xlsx");
+      XLSX.writeFile(workbook, `entries-${filter.toLowerCase()}.xlsx`);
     };
+
+    streamFilter.addEventListener("change", renderEntries);
 
     fetchEntries();
   </script>
