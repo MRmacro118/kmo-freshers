@@ -38,6 +38,57 @@
       box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
     }
 
+    /* Small total bar styles */
+    .total-bar {
+      background: linear-gradient(90deg, #4CAF50, #45a049);
+      color: white;
+      padding: 1rem 1.5rem;
+      border-radius: 8px;
+      margin-bottom: 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .total-main {
+      font-size: 1.5rem;
+      font-weight: 600;
+    }
+
+    .total-breakdown {
+      display: flex;
+      gap: 1.5rem;
+      font-size: 0.9rem;
+      flex-wrap: wrap;
+    }
+
+    .breakdown-item {
+      text-align: center;
+    }
+
+    .breakdown-amount {
+      font-weight: 600;
+      font-size: 1rem;
+    }
+
+    .breakdown-label {
+      opacity: 0.8;
+      font-size: 0.8rem;
+    }
+
+    @media (max-width: 600px) {
+      .total-bar {
+        flex-direction: column;
+        text-align: center;
+      }
+      
+      .total-breakdown {
+        justify-content: center;
+      }
+    }
+
     .controls {
       display: flex;
       justify-content: space-between;
@@ -105,6 +156,25 @@
   <h1>KMO FRESHERS DAY - Summary</h1>
 
   <div class="summary">
+    <!-- Small Total Bar -->
+    <div class="total-bar">
+      <div class="total-main" id="totalMain">Total: ₹0</div>
+      <div class="total-breakdown" id="totalBreakdown">
+        <div class="breakdown-item">
+          <div class="breakdown-amount" id="scienceTotal">₹0</div>
+          <div class="breakdown-label">Science</div>
+        </div>
+        <div class="breakdown-item">
+          <div class="breakdown-amount" id="commerceTotal">₹0</div>
+          <div class="breakdown-label">Commerce</div>
+        </div>
+        <div class="breakdown-item">
+          <div class="breakdown-amount" id="humanitiesTotal">₹0</div>
+          <div class="breakdown-label">Humanities</div>
+        </div>
+      </div>
+    </div>
+
     <div class="controls">
       <select id="streamFilter">
         <option value="All">All Streams</option>
@@ -137,6 +207,12 @@
     const entryList = document.getElementById("entryList");
     const exportBtn = document.getElementById("exportBtn");
     const streamFilter = document.getElementById("streamFilter");
+    
+    // Total bar elements
+    const totalMain = document.getElementById("totalMain");
+    const scienceTotal = document.getElementById("scienceTotal");
+    const commerceTotal = document.getElementById("commerceTotal");
+    const humanitiesTotal = document.getElementById("humanitiesTotal");
 
     let entriesData = [];
 
@@ -145,6 +221,36 @@
       const snapshot = await getDocs(q);
       entriesData = snapshot.docs.map(doc => doc.data());
       renderEntries();
+    }
+
+    function updateTotalBar() {
+      const filter = streamFilter.value;
+      
+      // Calculate stream totals
+      const streamTotals = {
+        Science: 0,
+        Commerce: 0,
+        Humanities: 0
+      };
+
+      entriesData.forEach(entry => {
+        if (streamTotals.hasOwnProperty(entry.stream)) {
+          streamTotals[entry.stream] += entry.amount || 0;
+        }
+      });
+
+      // Update individual stream displays
+      scienceTotal.textContent = `₹${streamTotals.Science.toLocaleString()}`;
+      commerceTotal.textContent = `₹${streamTotals.Commerce.toLocaleString()}`;
+      humanitiesTotal.textContent = `₹${streamTotals.Humanities.toLocaleString()}`;
+
+      // Calculate and display main total based on filter
+      if (filter === "All") {
+        const grandTotal = streamTotals.Science + streamTotals.Commerce + streamTotals.Humanities;
+        totalMain.textContent = `Total: ₹${grandTotal.toLocaleString()}`;
+      } else {
+        totalMain.textContent = `${filter}: ₹${streamTotals[filter].toLocaleString()}`;
+      }
     }
 
     function renderEntries() {
@@ -166,6 +272,8 @@
         `;
         entryList.appendChild(div);
       });
+
+      updateTotalBar();
     }
 
     exportBtn.onclick = () => {
