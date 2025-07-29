@@ -151,14 +151,15 @@
       const filter = streamFilter.value;
       entryList.innerHTML = "";
 
-      const filtered = entriesData.filter(entry => 
+      const filtered = entriesData.filter(entry =>
         filter === "All" || entry.stream === filter
       );
 
-      filtered.forEach(data => {
+      filtered.forEach((data, index) => {
         const div = document.createElement("div");
         div.className = "entry";
         div.innerHTML = `
+          <span><strong>Sl. No: ${index + 1}</strong></span>
           <span><strong>${data.name}</strong> paid ₹${data.amount}</span>
           <span>${data.stream} | ${data.mode}</span>
           <span>Received by: <strong>${data.receiver}</strong></span>
@@ -170,9 +171,10 @@
 
     exportBtn.onclick = () => {
       const filter = streamFilter.value;
-      const filteredData = entriesData.filter(entry => 
+      const filteredData = entriesData.filter(entry =>
         filter === "All" || entry.stream === filter
-      ).map(data => ({
+      ).map((data, index) => ({
+        "Sl. No": index + 1,
         Name: data.name,
         Stream: data.stream,
         Mode: data.mode,
