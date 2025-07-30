@@ -35,7 +35,7 @@
     }
 
     .total-bar {
-      background: linear-gradient(90deg, #f44336, #e53935);
+      background: linear-gradient(90deg, #4caf50, #43a047);
       color: white;
       padding: 1rem 1.5rem;
       border-radius: 8px;
@@ -144,8 +144,7 @@
           <span>Amount: ₹${data.amount}</span>
           <span>Spent by: <strong>${data.spentBy || 'Unknown'}</strong></span>
           <span>Place: ${data.place || 'N/A'}</span>
-          <span>Date: ${new Date(data.timestamp).toLocaleString()}</span>
-          ${data.imageUrl ? `<span><img src="${data.imageUrl}" alt="receipt"></span>` : ""}
+          <span>Date: ${data.timestamp ? new Date(data.timestamp).toLocaleString() : 'N/A'}</span>
         `;
         spendingList.appendChild(div);
       });
