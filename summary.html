@@ -7,7 +7,6 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
   <script type="module" src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js"></script>
   <script type="module" src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <link rel="shortcut icon" href="favicon.png" type="image/x-icon">
   <style>
     * {
@@ -38,7 +37,6 @@
       box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
     }
 
-    /* Small total bar styles */
     .total-bar {
       background: linear-gradient(90deg, #4CAF50, #45a049);
       color: white;
@@ -83,7 +81,6 @@
         flex-direction: column;
         text-align: center;
       }
-      
       .total-breakdown {
         justify-content: center;
       }
@@ -97,23 +94,13 @@
       gap: 1rem;
     }
 
-    select, button {
+    select {
       padding: 0.6rem 1rem;
       font-size: 1rem;
       border: 1px solid #ccc;
       border-radius: 8px;
       background: white;
       cursor: pointer;
-    }
-
-    button {
-      background-color: #4CAF50;
-      color: white;
-      border: none;
-    }
-
-    button:hover {
-      background-color: #45a049;
     }
 
     .entry {
@@ -155,8 +142,7 @@
 <body>
   <h1>KMO FRESHERS DAY - Summary</h1>
 
-      <div class="summary">
-    <!-- Small Total Bar at Top -->
+  <div class="summary">
     <div class="total-bar">
       <div class="total-main" id="totalMain">Total: ₹0</div>
       <div class="total-breakdown" id="totalBreakdown">
@@ -174,7 +160,7 @@
         </div>
       </div>
     </div>
-    
+
     <div class="controls">
       <select id="streamFilter">
         <option value="All">All Streams</option>
@@ -183,10 +169,8 @@
         <option value="Humanities">Humanities</option>
       </select>
     </div>
-    
+
     <div id="entryList"></div>
-    
-    <button id="exportBtn">Download Filtered Excel</button>
   </div>
 
   <script type="module">
@@ -207,10 +191,8 @@
     const db = getFirestore(app);
 
     const entryList = document.getElementById("entryList");
-    const exportBtn = document.getElementById("exportBtn");
     const streamFilter = document.getElementById("streamFilter");
-    
-    // Total bar elements
+
     const totalMain = document.getElementById("totalMain");
     const scienceTotal = document.getElementById("scienceTotal");
     const commerceTotal = document.getElementById("commerceTotal");
@@ -227,8 +209,7 @@
 
     function updateTotalBar() {
       const filter = streamFilter.value;
-      
-      // Calculate stream totals
+
       const streamTotals = {
         Science: 0,
         Commerce: 0,
@@ -241,12 +222,10 @@
         }
       });
 
-      // Update individual stream displays
       scienceTotal.textContent = `₹${streamTotals.Science.toLocaleString()}`;
       commerceTotal.textContent = `₹${streamTotals.Commerce.toLocaleString()}`;
       humanitiesTotal.textContent = `₹${streamTotals.Humanities.toLocaleString()}`;
 
-      // Calculate and display main total based on filter
       if (filter === "All") {
         const grandTotal = streamTotals.Science + streamTotals.Commerce + streamTotals.Humanities;
         totalMain.textContent = `Total: ₹${grandTotal.toLocaleString()}`;
@@ -259,7 +238,7 @@
       const filter = streamFilter.value;
       entryList.innerHTML = "";
 
-      const filtered = entriesData.filter(entry => 
+      const filtered = entriesData.filter(entry =>
         filter === "All" || entry.stream === filter
       );
 
@@ -277,30 +256,6 @@
 
       updateTotalBar();
     }
-
-    exportBtn.onclick = () => {
-      const filter = streamFilter.value;
-      const filteredData = entriesData
-        .filter(entry => filter === "All" || entry.stream === filter)
-        .map((data, index) => ({
-          Name: `${index + 1}. ${data.name}`,
-          Stream: data.stream,
-          Mode: data.mode,
-          Amount: data.amount,
-          Receiver: data.receiver,
-          Time: new Date(data.timestamp).toLocaleString()
-        }));
-
-      if (filteredData.length === 0) {
-        alert("No data to export!");
-        return;
-      }
-
-      const worksheet = XLSX.utils.json_to_sheet(filteredData);
-      const workbook = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(workbook, worksheet, "Entries");
-      XLSX.writeFile(workbook, `entries-${filter.toLowerCase()}.xlsx`);
-    };
 
     streamFilter.addEventListener("change", renderEntries);
 
