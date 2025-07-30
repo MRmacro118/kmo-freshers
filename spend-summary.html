@@ -7,6 +7,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
   <script type="module" src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js"></script>
   <script type="module" src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js"></script>
+  <script type="module" src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
     * {
       box-sizing: border-box;
@@ -99,6 +100,17 @@
       color: #000;
     }
 
+    .download-btn {
+      padding: 0.5rem 1.5rem;
+      background: white;
+      color: #4CAF50;
+      border: 2px solid white;
+      border-radius: 8px;
+      font-size: 1rem;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
     @media (max-width: 600px) {
       .total-bar {
         flex-direction: column;
@@ -126,7 +138,7 @@
         </div>
       </div>
     </div>
-
+    <button class="download-btn" onclick="downloadExcel()">Download Excel</button>
     <div id="entryList"></div>
   </div>
 
@@ -151,8 +163,9 @@
     const totalMain = document.getElementById("totalMain");
     const spentTotal = document.getElementById("spentTotal");
 
-    let totalBudget = 18850; // initial amount collected
+    let totalBudget = 18850;
     let totalSpent = 0;
+    let excelData = [];
 
     async function fetchExpenses() {
       const q = query(collection(db, "expenses"), orderBy("timestamp", "desc"));
@@ -166,15 +179,31 @@
         div.className = "entry";
         div.innerHTML = `
           <span><strong>${i + 1}. ${item.spender}</strong> spent ₹${item.amount}</span>
-          <span>${item.description}</span>
+          <span><strong>Buyed:</strong> ${item.description}</span>
           <span><strong>Place:</strong> ${item.place}</span>
-          <span style="color:#555;">${item.timestamp?.toDate?.().toLocaleString() || ''}</span>
+          <span style="color:#555;"><strong>Time:</strong> ${item.timestamp?.toDate?.().toLocaleString() || ''}</span>
         `;
         entryList.appendChild(div);
+
+        excelData.push({
+          "#": i + 1,
+          Spender: item.spender,
+          Amount: item.amount,
+          Buyed: item.description,
+          Place: item.place,
+          Time: item.timestamp?.toDate?.().toLocaleString() || ''
+        });
       });
 
       spentTotal.textContent = `₹${totalSpent.toLocaleString()}`;
       totalMain.textContent = `Total Remaining: ₹${(totalBudget - totalSpent).toLocaleString()}`;
+    }
+
+    window.downloadExcel = function() {
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.json_to_sheet(excelData);
+      XLSX.utils.book_append_sheet(wb, ws, "Spending Summary");
+      XLSX.writeFile(wb, "spending_summary.xlsx");
     }
 
     fetchExpenses();
