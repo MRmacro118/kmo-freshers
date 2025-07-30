@@ -3,11 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>KMO FRESHERS DAY - Summary</title>
+  <title>KMO Spending Summary</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
   <script type="module" src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js"></script>
   <script type="module" src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js"></script>
-  <link rel="shortcut icon" href="favicon.png" type="image/x-icon">
   <style>
     * {
       box-sizing: border-box;
@@ -76,33 +75,6 @@
       font-size: 0.8rem;
     }
 
-    @media (max-width: 600px) {
-      .total-bar {
-        flex-direction: column;
-        text-align: center;
-      }
-      .total-breakdown {
-        justify-content: center;
-      }
-    }
-
-    .controls {
-      display: flex;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      margin-bottom: 1.2rem;
-      gap: 1rem;
-    }
-
-    select {
-      padding: 0.6rem 1rem;
-      font-size: 1rem;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      background: white;
-      cursor: pointer;
-    }
-
     .entry {
       display: flex;
       flex-wrap: wrap;
@@ -128,46 +100,31 @@
     }
 
     @media (max-width: 600px) {
+      .total-bar {
+        flex-direction: column;
+        text-align: center;
+      }
+      .total-breakdown {
+        justify-content: center;
+      }
       .entry span {
         flex: 1 1 100%;
-      }
-
-      .controls {
-        flex-direction: column;
-        align-items: stretch;
       }
     }
   </style>
 </head>
 <body>
-  <h1>KMO FRESHERS DAY - Summary</h1>
+  <h1>KMO Spending Summary</h1>
 
   <div class="summary">
     <div class="total-bar">
-      <div class="total-main" id="totalMain">Total: ₹0</div>
-      <div class="total-breakdown" id="totalBreakdown">
+      <div class="total-main" id="totalMain">Total Remaining: ₹0</div>
+      <div class="total-breakdown">
         <div class="breakdown-item">
-          <div class="breakdown-amount" id="scienceTotal">₹0</div>
-          <div class="breakdown-label">Science</div>
-        </div>
-        <div class="breakdown-item">
-          <div class="breakdown-amount" id="commerceTotal">₹0</div>
-          <div class="breakdown-label">Commerce</div>
-        </div>
-        <div class="breakdown-item">
-          <div class="breakdown-amount" id="humanitiesTotal">₹0</div>
-          <div class="breakdown-label">Humanities</div>
+          <div class="breakdown-amount" id="spentTotal">₹0</div>
+          <div class="breakdown-label">Total Spent</div>
         </div>
       </div>
-    </div>
-
-    <div class="controls">
-      <select id="streamFilter">
-        <option value="All">All Streams</option>
-        <option value="Science">Science</option>
-        <option value="Commerce">Commerce</option>
-        <option value="Humanities">Humanities</option>
-      </select>
     </div>
 
     <div id="entryList"></div>
@@ -191,75 +148,36 @@
     const db = getFirestore(app);
 
     const entryList = document.getElementById("entryList");
-    const streamFilter = document.getElementById("streamFilter");
-
     const totalMain = document.getElementById("totalMain");
-    const scienceTotal = document.getElementById("scienceTotal");
-    const commerceTotal = document.getElementById("commerceTotal");
-    const humanitiesTotal = document.getElementById("humanitiesTotal");
+    const spentTotal = document.getElementById("spentTotal");
 
-    let entriesData = [];
+    let totalBudget = 18850; // initial amount collected
+    let totalSpent = 0;
 
-    async function fetchEntries() {
-      const q = query(collection(db, "entries"), orderBy("timestamp", "desc"));
+    async function fetchExpenses() {
+      const q = query(collection(db, "expenses"), orderBy("timestamp", "desc"));
       const snapshot = await getDocs(q);
-      entriesData = snapshot.docs.map(doc => doc.data());
-      renderEntries();
-    }
+      const data = snapshot.docs.map(doc => doc.data());
 
-    function updateTotalBar() {
-      const filter = streamFilter.value;
+      data.forEach((item, i) => {
+        totalSpent += item.amount;
 
-      const streamTotals = {
-        Science: 0,
-        Commerce: 0,
-        Humanities: 0
-      };
-
-      entriesData.forEach(entry => {
-        if (streamTotals.hasOwnProperty(entry.stream)) {
-          streamTotals[entry.stream] += entry.amount || 0;
-        }
-      });
-
-      scienceTotal.textContent = `₹${streamTotals.Science.toLocaleString()}`;
-      commerceTotal.textContent = `₹${streamTotals.Commerce.toLocaleString()}`;
-      humanitiesTotal.textContent = `₹${streamTotals.Humanities.toLocaleString()}`;
-
-      if (filter === "All") {
-        const grandTotal = streamTotals.Science + streamTotals.Commerce + streamTotals.Humanities;
-        totalMain.textContent = `Total: ₹${grandTotal.toLocaleString()}`;
-      } else {
-        totalMain.textContent = `${filter}: ₹${streamTotals[filter].toLocaleString()}`;
-      }
-    }
-
-    function renderEntries() {
-      const filter = streamFilter.value;
-      entryList.innerHTML = "";
-
-      const filtered = entriesData.filter(entry =>
-        filter === "All" || entry.stream === filter
-      );
-
-      filtered.forEach((data, index) => {
         const div = document.createElement("div");
         div.className = "entry";
         div.innerHTML = `
-          <span><strong>${index + 1}. ${data.name}</strong> paid ₹${data.amount}</span>
-          <span>${data.stream} | ${data.mode}</span>
-          <span>Received by: <strong>${data.receiver}</strong></span>
-          <span style="color:#555;">${new Date(data.timestamp).toLocaleString()}</span>
+          <span><strong>${i + 1}. ${item.spender}</strong> spent ₹${item.amount}</span>
+          <span>${item.description}</span>
+          <span>${item.place}</span>
+          <span style="color:#555;">${item.timestamp?.toDate?.().toLocaleString() || ''}</span>
         `;
         entryList.appendChild(div);
       });
 
-      updateTotalBar();
+      spentTotal.textContent = `₹${totalSpent.toLocaleString()}`;
+      totalMain.textContent = `Total Remaining: ₹${(totalBudget - totalSpent).toLocaleString()}`;
     }
 
-    streamFilter.addEventListener("change", renderEntries);
-
-    fetchEntries();
+    fetchExpenses();
   </script>
 </body>
 </html>
