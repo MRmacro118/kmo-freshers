@@ -3,108 +3,90 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>KMO Spending Entry</title>
+  <title>Spending Summary</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
   <script type="module" src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js"></script>
   <script type="module" src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
     body {
       font-family: 'Inter', sans-serif;
-      background: #f8f9fa;
+      background: #f0f4f7;
       margin: 0;
       padding: 20px;
     }
-    .container {
-      max-width: 500px;
-      margin: 0 auto;
+    .summary-bar {
+      display: flex;
+      justify-content: space-around;
+      background-color: #4CAF50;
+      color: white;
+      padding: 16px;
+      border-radius: 12px;
+      margin-bottom: 24px;
+      font-size: 18px;
+      font-weight: 600;
+    }
+    .table-container {
       background: white;
-      padding: 30px;
+      padding: 20px;
       border-radius: 12px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.08);
     }
-    h1 {
-      text-align: center;
-      margin-bottom: 24px;
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
     }
-    form {
-      display: flex;
-      flex-direction: column;
-    }
-    label {
-      margin-bottom: 6px;
-      font-weight: 600;
-    }
-    input, select, textarea {
+    th, td {
+      text-align: left;
       padding: 10px;
-      margin-bottom: 16px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      font-size: 16px;
+      border-bottom: 1px solid #ccc;
     }
-    button {
-      padding: 12px;
+    th {
+      background-color: #f2f2f2;
+    }
+    .export-btn {
+      margin-top: 16px;
+      padding: 10px 20px;
       background-color: #4CAF50;
       color: white;
-      font-size: 16px;
+      font-size: 15px;
       border: none;
       border-radius: 6px;
       cursor: pointer;
-      margin-top: 10px;
     }
-    button:hover {
+    .export-btn:hover {
       background-color: #45a049;
-    }
-    .link-summary {
-      text-align: center;
-      margin-top: 20px;
-      font-weight: 600;
-    }
-    .link-summary a {
-      color: #4CAF50;
-      text-decoration: none;
-    }
-    .link-summary a:hover {
-      text-decoration: underline;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Spending Entry</h1>
-    <form id="spendForm">
-      <label for="description">What was the money used for?</label>
-      <textarea id="description" rows="3" placeholder="e.g. Decoration items, snacks..." required></textarea>
+  <div class="summary-bar">
+    <div>Total Collected: ₹<span id="collected">0</span></div>
+    <div>Total Spent: ₹<span id="spent">0</span></div>
+    <div>Balance: ₹<span id="balance">0</span></div>
+  </div>
 
-      <label for="spender">Who spent it?</label>
-      <select id="spender" required>
-        <option value="">-- Select Spender --</option>
-        <option value="shibil">Shibil</option>
-        <option value="navaf">Navaf</option>
-        <option value="ajas">Ajas</option>
-        <option value="minhaj">Minhaj</option>
-        <option value="hashir">Hashir</option>
-        <option value="Bessy">Bessy - Miss</option>
-        <option value="Dilsha">Dilsha - Miss</option>
-        <option value="salman">Salman</option>
-      </select>
-
-      <label for="place">Where was it bought?</label>
-      <input type="text" id="place" placeholder="e.g. Lulu, local shop" required />
-
-      <label for="amount">How much was spent?</label>
-      <input type="number" id="amount" placeholder="e.g. 250" required />
-
-      <button type="submit">Submit Spending</button>
-    </form>
-
-    <div class="link-summary">
-      <a href="spend-summary.html">View Spending Summary →</a>
-    </div>
+  <div class="table-container">
+    <h2>Spending Summary</h2>
+    <table id="spendTable">
+      <thead>
+        <tr>
+          <th>What For</th>
+          <th>Who</th>
+          <th>Where</th>
+          <th>Amount</th>
+          <th>Time</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    <button class="export-btn" onclick="exportToExcel()">Export to Excel</button>
   </div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js";
+    import { getFirestore, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAOKKVp7hgeM_o563UJ1SmcJBIgzL50_HM",
@@ -119,32 +101,53 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    const form = document.getElementById('spendForm');
+    const tbody = document.querySelector("#spendTable tbody");
+    const collectedEl = document.getElementById("collected");
+    const spentEl = document.getElementById("spent");
+    const balanceEl = document.getElementById("balance");
 
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
+    async function loadData() {
+      const expensesSnap = await getDocs(query(collection(db, "expenses"), orderBy("timestamp", "desc")));
+      const collectionSnap = await getDocs(collection(db, "transactions"));
 
-      const spender = document.getElementById('spender').value;
-      const description = document.getElementById('description').value.trim();
-      const place = document.getElementById('place').value.trim();
-      const amount = parseFloat(document.getElementById('amount').value);
+      let spent = 0;
+      let collected = 0;
+      const rows = [];
 
-      try {
-        await addDoc(collection(db, 'expenses'), {
-          spender,
-          description,
-          place,
-          amount,
-          timestamp: serverTimestamp()
-        });
+      collectionSnap.forEach(doc => {
+        collected += doc.data().amount || 0;
+      });
 
-        form.reset();
-        alert('Spending recorded!');
-      } catch (error) {
-        console.error("Error adding document:", error);
-        alert('Something went wrong. Please try again.');
-      }
-    });
+      expensesSnap.forEach(doc => {
+        const data = doc.data();
+        const row = document.createElement("tr");
+
+        spent += data.amount || 0;
+
+        row.innerHTML = `
+          <td>${data.description || ''}</td>
+          <td>${data.spender || ''}</td>
+          <td>${data.place || ''}</td>
+          <td>₹${data.amount}</td>
+          <td>${data.timestamp?.toDate().toLocaleString() || ''}</td>
+        `;
+        tbody.appendChild(row);
+      });
+
+      collectedEl.innerText = collected;
+      spentEl.innerText = spent;
+      balanceEl.innerText = collected - spent;
+    }
+
+    loadData();
+  </script>
+
+  <script>
+    function exportToExcel() {
+      const table = document.getElementById("spendTable");
+      const wb = XLSX.utils.table_to_book(table, { sheet: "Spending Summary" });
+      XLSX.writeFile(wb, "spending-summary.xlsx");
+    }
   </script>
 </body>
 </html>
