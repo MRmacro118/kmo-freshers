@@ -3,85 +3,131 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Spending Summary</title>
+  <title>KMO Spending Summary</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
   <script type="module" src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js"></script>
   <script type="module" src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       font-family: 'Inter', sans-serif;
-      background: #f0f4f7;
+      background: #f0f2f5;
       margin: 0;
-      padding: 20px;
+      padding: 1.5rem;
+      color: #333;
     }
-    .summary-bar {
-      display: flex;
-      justify-content: space-around;
-      background-color: #4CAF50;
-      color: white;
-      padding: 16px;
+
+    h1 {
+      text-align: center;
+      font-size: 1.75rem;
+      margin-bottom: 1.5rem;
+      color: #222;
+    }
+
+    .summary {
+      background: #fff;
+      padding: 1.5rem;
       border-radius: 12px;
-      margin-bottom: 24px;
-      font-size: 18px;
+      max-width: 900px;
+      margin: 0 auto;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+    }
+
+    .total-bar {
+      background: linear-gradient(90deg, #4CAF50, #45a049);
+      color: white;
+      padding: 1rem 1.5rem;
+      border-radius: 8px;
+      margin-bottom: 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .total-main {
+      font-size: 1.5rem;
       font-weight: 600;
     }
-    .table-container {
-      background: white;
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+
+    .total-breakdown {
+      display: flex;
+      gap: 1.5rem;
+      font-size: 0.9rem;
+      flex-wrap: wrap;
     }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 10px;
+
+    .breakdown-item {
+      text-align: center;
     }
-    th, td {
-      text-align: left;
-      padding: 10px;
-      border-bottom: 1px solid #ccc;
+
+    .breakdown-amount {
+      font-weight: 600;
+      font-size: 1rem;
     }
-    th {
-      background-color: #f2f2f2;
+
+    .breakdown-label {
+      opacity: 0.8;
+      font-size: 0.8rem;
     }
-    .export-btn {
-      margin-top: 16px;
-      padding: 10px 20px;
-      background-color: #4CAF50;
-      color: white;
-      font-size: 15px;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
+
+    .entry {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      padding: 1rem 0;
+      border-bottom: 1px solid #e0e0e0;
     }
-    .export-btn:hover {
-      background-color: #45a049;
+
+    .entry:last-child {
+      border-bottom: none;
+    }
+
+    .entry span {
+      flex: 1 1 45%;
+      margin: 6px 0;
+      font-size: 0.97rem;
+      line-height: 1.4;
+    }
+
+    .entry strong {
+      font-weight: 600;
+      color: #000;
+    }
+
+    @media (max-width: 600px) {
+      .total-bar {
+        flex-direction: column;
+        text-align: center;
+      }
+      .total-breakdown {
+        justify-content: center;
+      }
+      .entry span {
+        flex: 1 1 100%;
+      }
     }
   </style>
 </head>
 <body>
-  <div class="summary-bar">
-    <div>Total Collected: ₹<span id="collected">0</span></div>
-    <div>Total Spent: ₹<span id="spent">0</span></div>
-    <div>Balance: ₹<span id="balance">0</span></div>
-  </div>
+  <h1>KMO Spending Summary</h1>
 
-  <div class="table-container">
-    <h2>Spending Summary</h2>
-    <table id="spendTable">
-      <thead>
-        <tr>
-          <th>What For</th>
-          <th>Who</th>
-          <th>Where</th>
-          <th>Amount</th>
-          <th>Time</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-    <button class="export-btn" onclick="exportToExcel()">Export to Excel</button>
+  <div class="summary">
+    <div class="total-bar">
+      <div class="total-main" id="totalMain">Total Remaining: ₹0</div>
+      <div class="total-breakdown">
+        <div class="breakdown-item">
+          <div class="breakdown-amount" id="spentTotal">₹0</div>
+          <div class="breakdown-label">Total Spent</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="entryList"></div>
   </div>
 
   <script type="module">
@@ -101,53 +147,37 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    const tbody = document.querySelector("#spendTable tbody");
-    const collectedEl = document.getElementById("collected");
-    const spentEl = document.getElementById("spent");
-    const balanceEl = document.getElementById("balance");
+    const entryList = document.getElementById("entryList");
+    const totalMain = document.getElementById("totalMain");
+    const spentTotal = document.getElementById("spentTotal");
 
-    async function loadData() {
-      const expensesSnap = await getDocs(query(collection(db, "expenses"), orderBy("timestamp", "desc")));
-      const collectionSnap = await getDocs(collection(db, "transactions"));
+    let totalBudget = 18850; // initial amount collected
+    let totalSpent = 0;
 
-      let spent = 0;
-      let collected = 0;
-      const rows = [];
+    async function fetchExpenses() {
+      const q = query(collection(db, "expenses"), orderBy("timestamp", "desc"));
+      const snapshot = await getDocs(q);
+      const data = snapshot.docs.map(doc => doc.data());
 
-      collectionSnap.forEach(doc => {
-        collected += doc.data().amount || 0;
-      });
+      data.forEach((item, i) => {
+        totalSpent += item.amount;
 
-      expensesSnap.forEach(doc => {
-        const data = doc.data();
-        const row = document.createElement("tr");
-
-        spent += data.amount || 0;
-
-        row.innerHTML = `
-          <td>${data.description || ''}</td>
-          <td>${data.spender || ''}</td>
-          <td>${data.place || ''}</td>
-          <td>₹${data.amount}</td>
-          <td>${data.timestamp?.toDate().toLocaleString() || ''}</td>
+        const div = document.createElement("div");
+        div.className = "entry";
+        div.innerHTML = `
+          <span><strong>${i + 1}. ${item.spender}</strong> spent ₹${item.amount}</span>
+          <span>${item.description}</span>
+          <span>${item.place}</span>
+          <span style="color:#555;">${item.timestamp?.toDate?.().toLocaleString() || ''}</span>
         `;
-        tbody.appendChild(row);
+        entryList.appendChild(div);
       });
 
-      collectedEl.innerText = collected;
-      spentEl.innerText = spent;
-      balanceEl.innerText = collected - spent;
+      spentTotal.textContent = `₹${totalSpent.toLocaleString()}`;
+      totalMain.textContent = `Total Remaining: ₹${(totalBudget - totalSpent).toLocaleString()}`;
     }
 
-    loadData();
-  </script>
-
-  <script>
-    function exportToExcel() {
-      const table = document.getElementById("spendTable");
-      const wb = XLSX.utils.table_to_book(table, { sheet: "Spending Summary" });
-      XLSX.writeFile(wb, "spending-summary.xlsx");
-    }
+    fetchExpenses();
   </script>
 </body>
 </html>
