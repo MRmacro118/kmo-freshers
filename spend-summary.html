@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Spending Summary - KMO FRESHERS</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <script type="module" src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js"></script>
+  <script type="module" src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js"></script>
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #f0f2f5;
+      padding: 20px;
+    }
+    .container {
+      max-width: 700px;
+      margin: 0 auto;
+      background: white;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .totals {
+      display: flex;
+      justify-content: space-between;
+      font-size: 18px;
+      margin-bottom: 20px;
+    }
+    .expense {
+      padding: 10px;
+      border-bottom: 1px solid #ccc;
+    }
+    .expense:last-child {
+      border-bottom: none;
+    }
+    .proof {
+      max-width: 100px;
+      margin-top: 5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Spending Summary</h2>
+    <div class="totals">
+      <div><strong>Total Collected:</strong> ₹<span id="totalCollected">0</span></div>
+      <div><strong>Total Spent:</strong> ₹<span id="totalSpent">0</span></div>
+      <div><strong>Balance Left:</strong> ₹<span id="balance">0</span></div>
+    </div>
+    <div id="expensesList"></div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
+    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAOKKVp7hgeM_o563UJ1SmcJBIgzL50_HM",
+      authDomain: "cash-entry-19c6c.firebaseapp.com",
+      projectId: "cash-entry-19c6c",
+      storageBucket: "cash-entry-19c6c.appspot.com",
+      messagingSenderId: "193833436019",
+      appId: "1:193833436019:web:5f9d119a75fd2974ca3b06",
+      measurementId: "G-KFJFRPWP04"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    async function fetchSummary() {
+      let totalCollected = 0;
+      let totalSpent = 0;
+
+      // Fetch donations from 'entries'
+      const entriesSnapshot = await getDocs(collection(db, "entries"));
+      entriesSnapshot.forEach(doc => {
+        const data = doc.data();
+        totalCollected += parseFloat(data.amount || 0);
+      });
+
+      // Fetch expenses from 'expenses'
+      const expensesSnapshot = await getDocs(collection(db, "expenses"));
+      const expensesList = document.getElementById("expensesList");
+      expensesSnapshot.forEach(doc => {
+        const data = doc.data();
+        totalSpent += parseFloat(data.amount || 0);
+
+        const item = document.createElement("div");
+        item.className = "expense";
+        item.innerHTML = `
+          <strong>${data.spender}</strong> spent ₹${data.amount} for <em>${data.description}</em><br/>
+          <small>Place: ${data.place || 'N/A'}</small>
+          ${data.imageUrl ? `<br/><img src="${data.imageUrl}" class="proof" />` : ''}
+        `;
+        expensesList.appendChild(item);
+      });
+
+      document.getElementById("totalCollected").textContent = totalCollected;
+      document.getElementById("totalSpent").textContent = totalSpent;
+      document.getElementById("balance").textContent = totalCollected - totalSpent;
+    }
+
+    fetchSummary();
+  </script>
+</body>
+</html>
