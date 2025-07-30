@@ -27,13 +27,15 @@
       text-align: center;
       margin-bottom: 24px;
     }
+    form {
+      display: flex;
+      flex-direction: column;
+    }
     label {
-      display: block;
       margin-bottom: 6px;
       font-weight: 600;
     }
     input, select {
-      width: 100%;
       padding: 10px;
       margin-bottom: 16px;
       border: 1px solid #ccc;
@@ -41,7 +43,6 @@
       font-size: 16px;
     }
     button {
-      width: 100%;
       padding: 12px;
       background-color: #4CAF50;
       color: white;
@@ -49,6 +50,7 @@
       border: none;
       border-radius: 6px;
       cursor: pointer;
+      margin-top: 10px;
     }
     button:hover {
       background-color: #45a049;
@@ -71,7 +73,7 @@
   <div class="container">
     <h1>KMO Cash Entry</h1>
     <form id="cashForm">
-      <label for="name">Name: </label>
+      <label for="name">Name</label>
       <input type="text" id="name" required />
 
       <label for="stream">Stream</label>
