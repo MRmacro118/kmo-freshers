@@ -3,61 +3,75 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Add Spending</title>
+  <title>Spending Entry</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
   <style>
+    * {
+      box-sizing: border-box;
+    }
     body {
       font-family: 'Inter', sans-serif;
-      background: #f8f9fa;
+      background-color: #f1f5f9;
+      margin: 0;
+      padding: 0;
       display: flex;
       justify-content: center;
       align-items: center;
       height: 100vh;
-      margin: 0;
     }
-    .container {
-      background: #fff;
+    .form-container {
+      background-color: #fff;
       padding: 24px;
       border-radius: 12px;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.1);
-      max-width: 400px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
       width: 100%;
+      max-width: 420px;
     }
     h2 {
       text-align: center;
-      margin-bottom: 24px;
-      color: #333;
+      color: #1f2937;
+      margin-bottom: 20px;
     }
     input, select {
       width: 100%;
-      padding: 10px;
+      padding: 12px;
       margin: 10px 0;
-      border: 1px solid #ddd;
-      border-radius: 6px;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
       font-size: 14px;
+      background-color: #f9fafb;
     }
-    button {
+    .button {
       width: 100%;
       padding: 12px;
-      background-color: #007bff;
+      margin-top: 14px;
+      background-color: #3b82f6;
       color: white;
-      border: none;
-      border-radius: 6px;
       font-weight: bold;
+      border: none;
+      border-radius: 8px;
       cursor: pointer;
-      margin-top: 16px;
+      font-size: 15px;
+      transition: background-color 0.2s;
     }
-    button:hover {
-      background-color: #0056b3;
+    .button:hover {
+      background-color: #2563eb;
+    }
+    .button.green {
+      background-color: #22c55e;
+      margin-top: 10px;
+    }
+    .button.green:hover {
+      background-color: #16a34a;
     }
   </style>
 </head>
 <body>
-  <div class="container">
+  <div class="form-container">
     <h2>Spending Entry</h2>
     <input type="text" id="description" placeholder="What was the money spent on?" />
     <select id="spender">
-      <option disabled selected>Who spent it?</option>
+      <option disabled selected value="">Who spent it?</option>
       <option value="shibil">Shibil</option>
       <option value="navaf">Navaf</option>
       <option value="ajas">Ajas</option>
@@ -65,8 +79,8 @@
     </select>
     <input type="text" id="place" placeholder="Where was it bought from?" />
     <input type="number" id="amount" placeholder="Amount spent" />
-    <button onclick="submitSpend()">Submit Spending</button>
-    <button onclick="location.href='spend-summary.html'" style="margin-top:10px;background:#28a745;">Go to Spending Summary</button>
+    <button class="button" id="submitBtn">Submit Spending</button>
+    <button class="button green" onclick="location.href='spend-summary.html'">Go to Spending Summary</button>
   </div>
 
   <script type="module">
@@ -86,14 +100,14 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    async function submitSpend() {
-      const description = document.getElementById("description").value;
+    document.getElementById("submitBtn").addEventListener("click", async () => {
+      const description = document.getElementById("description").value.trim();
       const spender = document.getElementById("spender").value;
-      const place = document.getElementById("place").value;
+      const place = document.getElementById("place").value.trim();
       const amount = parseFloat(document.getElementById("amount").value);
 
-      if (!description || !spender || !place || !amount) {
-        alert("Please fill all fields.");
+      if (!description || !spender || !place || isNaN(amount)) {
+        alert("Please fill all fields properly.");
         return;
       }
 
@@ -105,12 +119,16 @@
           amount,
           timestamp: serverTimestamp()
         });
-        alert("Spending entry submitted!");
-        window.location.reload();
+        alert("Spending submitted successfully!");
+        // Reset fields
+        document.getElementById("description").value = "";
+        document.getElementById("spender").value = "";
+        document.getElementById("place").value = "";
+        document.getElementById("amount").value = "";
       } catch (error) {
-        alert("Error saving entry: " + error.message);
+        alert("Failed to submit: " + error.message);
       }
-    }
+    });
   </script>
 </body>
 </html>
