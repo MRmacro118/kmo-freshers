@@ -111,6 +111,12 @@
       font-weight: 600;
     }
 
+    .bottom-btn-container {
+      margin-top: 2rem;
+      display: flex;
+      justify-content: flex-start;
+    }
+
     @media (max-width: 600px) {
       .total-bar {
         flex-direction: column;
@@ -121,6 +127,9 @@
       }
       .entry span {
         flex: 1 1 100%;
+      }
+      .bottom-btn-container {
+        justify-content: center;
       }
     }
   </style>
@@ -138,8 +147,12 @@
         </div>
       </div>
     </div>
-    <button class="download-btn" onclick="downloadExcel()">Download Excel</button>
+
     <div id="entryList"></div>
+
+    <div class="bottom-btn-container">
+      <button class="download-btn" onclick="downloadExcel()">Download Excel</button>
+    </div>
   </div>
 
   <script type="module">
