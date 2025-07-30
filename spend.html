@@ -3,8 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Spending Entry</title>
+  <title>KMO FRESHERS DAY</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="shortcut icon" href="favicon.png" type="image/x-icon">
   <style>
     * {
       box-sizing: border-box;
@@ -25,73 +26,115 @@
       border-radius: 12px;
       box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
       width: 100%;
-      max-width: 420px;
+      max-width: 500px;
     }
-    h2 {
+    h1 {
       text-align: center;
       color: #1f2937;
       margin-bottom: 20px;
     }
+    form {
+      display: flex;
+      flex-direction: column;
+    }
+    label {
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
     input, select {
-      width: 100%;
       padding: 12px;
-      margin: 10px 0;
+      margin-bottom: 16px;
       border: 1px solid #d1d5db;
       border-radius: 8px;
       font-size: 14px;
       background-color: #f9fafb;
     }
-    .button {
-      width: 100%;
+    button {
       padding: 12px;
-      margin-top: 14px;
-      background-color: #3b82f6;
+      background-color: #4CAF50;
       color: white;
+      font-size: 16px;
       font-weight: bold;
       border: none;
       border-radius: 8px;
       cursor: pointer;
-      font-size: 15px;
-      transition: background-color 0.2s;
-    }
-    .button:hover {
-      background-color: #2563eb;
-    }
-    .button.green {
-      background-color: #22c55e;
       margin-top: 10px;
     }
-    .button.green:hover {
-      background-color: #16a34a;
+    button:hover {
+      background-color: #45a049;
+    }
+    .link-summary {
+      text-align: center;
+      margin-top: 20px;
+      font-weight: 600;
+    }
+    .link-summary a {
+      color: #4CAF50;
+      text-decoration: none;
+    }
+    .link-summary a:hover {
+      text-decoration: underline;
     }
   </style>
 </head>
 <body>
   <div class="form-container">
-    <h2>Spending Entry</h2>
-    <input type="text" id="description" placeholder="What was the money spent on?" />
-    <select id="spender">
-      <option disabled selected value="">Who spent it?</option>
-      <option value="shibil">Shibil</option>
-      <option value="navaf">Navaf</option>
-      <option value="ajas">Ajas</option>
-      <option value="minhaj">Minhaj</option>
-    </select>
-    <input type="text" id="place" placeholder="Where was it bought from?" />
-    <input type="number" id="amount" placeholder="Amount spent" />
-    <button class="button" id="submitBtn">Submit Spending</button>
-    <button class="button green" onclick="location.href='spend-summary.html'">Go to Spending Summary</button>
+    <h1>KMO Cash Entry</h1>
+    <form id="cashForm">
+      <label for="name">Name</label>
+      <input type="text" id="name" required />
+
+      <label for="stream">Stream</label>
+      <select id="stream" required>
+        <option value="">-- Select Stream --</option>
+        <option value="Science">Science</option>
+        <option value="Commerce">Commerce</option>
+        <option value="Humanities">Humanities</option>
+      </select>
+
+      <label for="mode">Payment Mode</label>
+      <select id="mode" required>
+        <option value="">-- Select Mode --</option>
+        <option value="Cash">Cash</option>
+        <option value="GPay">GPay</option>
+        <option value="PhonePe">PhonePe</option>
+        <option value="Paytm">Paytm</option>
+        <option value="Other">Other</option>
+      </select>
+
+      <label for="amount">Amount</label>
+      <input type="number" id="amount" required />
+
+      <label for="receiver">Received By</label>
+      <select id="receiver" required>
+        <option value="">-- Select Receiver --</option>
+        <option value="shibil">Shibil</option>
+        <option value="navaf">Navaf</option>
+        <option value="ajas">Ajas</option>
+        <option value="minhaj">Minhaj</option>
+        <option value="hashir">Hashir</option>
+        <option value="Bessy">Bessy - Miss</option>
+        <option value="Dilsha">Dilsha - Miss</option>
+        <option value="salman">Salman</option>
+      </select>
+
+      <button type="submit">Submit Entry</button>
+    </form>
+
+    <div class="link-summary">
+      <a href="summary.html">View Summary →</a>
+    </div>
   </div>
 
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAOKKVp7hgeM_o563UJ1SmcJBIgzL50_HM",
       authDomain: "cash-entry-19c6c.firebaseapp.com",
       projectId: "cash-entry-19c6c",
-      storageBucket: "cash-entry-19c6c.appspot.com",
+      storageBucket: "cash-entry-19c6c.firebasestorage.app",
       messagingSenderId: "193833436019",
       appId: "1:193833436019:web:5f9d119a75fd2974ca3b06",
       measurementId: "G-KFJFRPWP04"
@@ -100,33 +143,32 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    document.getElementById("submitBtn").addEventListener("click", async () => {
-      const description = document.getElementById("description").value.trim();
-      const spender = document.getElementById("spender").value;
-      const place = document.getElementById("place").value.trim();
-      const amount = parseFloat(document.getElementById("amount").value);
+    const form = document.getElementById('cashForm');
 
-      if (!description || !spender || !place || isNaN(amount)) {
-        alert("Please fill all fields properly.");
-        return;
-      }
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const name = document.getElementById('name').value.trim();
+      const stream = document.getElementById('stream').value;
+      const mode = document.getElementById('mode').value;
+      const amount = parseFloat(document.getElementById('amount').value);
+      const receiver = document.getElementById('receiver').value;
 
       try {
-        await addDoc(collection(db, "spendings"), {
-          description,
-          spender,
-          place,
+        await addDoc(collection(db, 'entries'), {
+          name,
+          stream,
+          mode,
           amount,
+          receiver,
           timestamp: serverTimestamp()
         });
-        alert("Spending submitted successfully!");
-        // Reset fields
-        document.getElementById("description").value = "";
-        document.getElementById("spender").value = "";
-        document.getElementById("place").value = "";
-        document.getElementById("amount").value = "";
+
+        form.reset();
+        alert('Entry submitted!');
       } catch (error) {
-        alert("Failed to submit: " + error.message);
+        console.error("Error adding document:", error);
+        alert('Something went wrong. Please try again.');
       }
     });
   </script>
