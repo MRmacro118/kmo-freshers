@@ -101,14 +101,19 @@
     }
 
     .download-btn {
-      padding: 0.5rem 1.5rem;
-      background: white;
-      color: #4CAF50;
-      border: 2px solid white;
+      padding: 0.6rem 1.5rem;
+      background: #4CAF50;
+      color: white;
+      border: none;
       border-radius: 8px;
       font-size: 1rem;
       cursor: pointer;
       font-weight: 600;
+      transition: background 0.3s ease;
+    }
+
+    .download-btn:hover {
+      background: #45a049;
     }
 
     .bottom-btn-container {
@@ -122,12 +127,15 @@
         flex-direction: column;
         text-align: center;
       }
+
       .total-breakdown {
         justify-content: center;
       }
+
       .entry span {
         flex: 1 1 100%;
       }
+
       .bottom-btn-container {
         justify-content: center;
       }
