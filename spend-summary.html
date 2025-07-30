@@ -5,153 +5,155 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Spending Summary</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
     * {
       box-sizing: border-box;
     }
+
     body {
       font-family: 'Inter', sans-serif;
-      background-color: #f1f5f9;
+      background: #f0f2f5;
       margin: 0;
-      padding: 0;
+      padding: 1.5rem;
+      color: #333;
     }
-    .summary-bar {
-      background-color: #22c55e;
-      color: white;
-      padding: 20px;
+
+    h1 {
       text-align: center;
-      font-size: 16px;
-      font-weight: 600;
-      display: flex;
-      justify-content: space-around;
-      flex-wrap: wrap;
+      font-size: 1.75rem;
+      margin-bottom: 1.5rem;
+      color: #222;
     }
-    .container {
-      max-width: 800px;
-      margin: 20px auto;
-      padding: 20px;
-      background-color: white;
+
+    .summary {
+      background: #fff;
+      padding: 1.5rem;
       border-radius: 12px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      max-width: 900px;
+      margin: 0 auto;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
     }
-    h2 {
-      text-align: center;
-      color: #1f2937;
-      margin-bottom: 20px;
+
+    .total-bar {
+      background: linear-gradient(90deg, #f44336, #e53935);
+      color: white;
+      padding: 1rem 1.5rem;
+      border-radius: 8px;
+      margin-bottom: 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
     }
+
+    .total-main {
+      font-size: 1.5rem;
+      font-weight: 600;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+      gap: 1rem;
+    }
+
     .entry {
-      border-bottom: 1px solid #e5e7eb;
-      padding: 10px 0;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      padding: 1rem 0;
+      border-bottom: 1px solid #e0e0e0;
     }
+
     .entry:last-child {
       border-bottom: none;
     }
-    .button {
-      background-color: #3b82f6;
-      color: white;
-      padding: 12px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: bold;
-      font-size: 14px;
-      margin-top: 20px;
-      display: block;
-      width: 100%;
+
+    .entry span {
+      flex: 1 1 45%;
+      margin: 6px 0;
+      font-size: 0.97rem;
+      line-height: 1.4;
     }
-    .button:hover {
-      background-color: #2563eb;
+
+    .entry strong {
+      font-weight: 600;
+      color: #000;
+    }
+
+    img {
+      max-width: 80px;
+      border-radius: 6px;
+      margin-top: 0.5rem;
+    }
+
+    @media (max-width: 600px) {
+      .entry span {
+        flex: 1 1 100%;
+      }
+      .controls {
+        flex-direction: column;
+      }
     }
   </style>
 </head>
 <body>
-  <div class="summary-bar" id="summaryBar">
-    <div>Total Collected: ₹<span id="totalCollected">0</span></div>
-    <div>Total Spent: ₹<span id="totalSpent">0</span></div>
-    <div>Remaining: ₹<span id="remainingBalance">0</span></div>
+  <h1>Spending Summary</h1>
+  <div class="summary">
+    <div class="total-bar">
+      <div class="total-main" id="totalSpent">Total Spent: ₹0</div>
+    </div>
+    <div id="spendingList"></div>
   </div>
 
-  <div class="container">
-    <h2>Spending Summary</h2>
-    <div id="summary"></div>
-    <button class="button" onclick="exportToExcel()">Export to Excel</button>
-  </div>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
+    import { getFirestore, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js";
 
-  <script>
     const firebaseConfig = {
       apiKey: "AIzaSyAOKKVp7hgeM_o563UJ1SmcJBIgzL50_HM",
       authDomain: "cash-entry-19c6c.firebaseapp.com",
       projectId: "cash-entry-19c6c",
       storageBucket: "cash-entry-19c6c.appspot.com",
       messagingSenderId: "193833436019",
-      appId: "1:193833436019:web:5f9d119a75fd2974ca3b06",
-      measurementId: "G-KFJFRPWP04"
+      appId: "1:193833436019:web:5f9d119a75fd2974ca3b06"
     };
 
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
 
-    let spendingData = [];
+    const spendingList = document.getElementById("spendingList");
+    const totalSpent = document.getElementById("totalSpent");
 
-    async function loadData() {
-      const summaryDiv = document.getElementById("summary");
-      let totalCollected = 0;
-      let totalSpent = 0;
+    async function loadSpendings() {
+      const q = query(collection(db, "spending"), orderBy("timestamp", "desc"));
+      const snapshot = await getDocs(q);
 
-      // Get collected money
-      const collectionSnapshot = await db.collection("transactions").get();
-      collectionSnapshot.forEach(doc => {
+      let total = 0;
+      snapshot.forEach((doc, index) => {
         const data = doc.data();
-        totalCollected += parseFloat(data.amount || 0);
-      });
+        total += data.amount || 0;
 
-      // Get spent money
-      const spendSnapshot = await db.collection("spendings").get();
-      spendSnapshot.forEach(doc => {
-        const data = doc.data();
-        const amount = parseFloat(data.amount || 0);
-        totalSpent += amount;
-        spendingData.push({
-          description: data.description || "",
-          spentBy: data.spentBy || "",
-          place: data.place || "",
-          amount: amount
-        });
-
-        const entry = document.createElement("div");
-        entry.className = "entry";
-        entry.innerHTML = `
-          <strong>${data.spentBy}</strong> spent ₹${amount} for <em>${data.description}</em> from ${data.place}
+        const div = document.createElement("div");
+        div.className = "entry";
+        div.innerHTML = `
+          <span><strong>${index + 1}. ${data.description || 'No description'}</strong></span>
+          <span>Amount: ₹${data.amount}</span>
+          <span>Spent by: <strong>${data.spentBy || 'Unknown'}</strong></span>
+          <span>Place: ${data.place || 'N/A'}</span>
+          <span>Date: ${new Date(data.timestamp).toLocaleString()}</span>
+          ${data.imageUrl ? `<span><img src="${data.imageUrl}" alt="receipt"></span>` : ""}
         `;
-        summaryDiv.appendChild(entry);
+        spendingList.appendChild(div);
       });
 
-      const remaining = totalCollected - totalSpent;
-
-      document.getElementById("totalCollected").textContent = totalCollected;
-      document.getElementById("totalSpent").textContent = totalSpent;
-      document.getElementById("remainingBalance").textContent = remaining;
+      totalSpent.textContent = `Total Spent: ₹${total.toLocaleString()}`;
     }
 
-    function exportToExcel() {
-      const ws_data = [
-        ['Description', 'Spent By', 'Place', 'Amount']
-      ];
-
-      spendingData.forEach(entry => {
-        ws_data.push([entry.description, entry.spentBy, entry.place, entry.amount]);
-      });
-
-      const wb = XLSX.utils.book_new();
-      const ws = XLSX.utils.aoa_to_sheet(ws_data);
-      XLSX.utils.book_append_sheet(wb, ws, "Spending Summary");
-      XLSX.writeFile(wb, "SpendingSummary.xlsx");
-    }
-
-    window.onload = loadData;
+    loadSpendings();
   </script>
 </body>
 </html>
