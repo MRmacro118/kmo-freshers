@@ -3,155 +3,104 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>KMO FRESHERS DAY - Summary</title>
+  <title>Spending Summary</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
-  <link rel="shortcut icon" href="favicon.png" type="image/x-icon">
-  <script type="module" src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js"></script>
-  <script type="module" src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js"></script>
-  <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/xlsx.mini.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
-    /* existing styles remain unchanged */
-    * { box-sizing: border-box; }
     body {
       font-family: 'Inter', sans-serif;
-      background: #f0f2f5;
-      margin: 0; padding: 1.5rem; color: #333;
+      background-color: #f9fafb;
+      margin: 0;
+      padding: 0;
     }
-    h1 {
-      text-align: center;
-      font-size: 1.75rem;
-      margin-bottom: 1.5rem;
-      color: #222;
-    }
-    .summary {
-      background: #fff;
-      padding: 1.5rem;
-      border-radius: 12px;
-      max-width: 900px;
-      margin: 0 auto;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
-    }
-    .total-bar {
-      background: linear-gradient(90deg, #4CAF50, #45a049);
+
+    .topbar {
+      background-color: #22c55e;
       color: white;
-      padding: 1rem 1.5rem;
-      border-radius: 8px;
-      margin-bottom: 1.5rem;
+      padding: 16px;
       display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 1rem;
-    }
-    .total-main {
-      font-size: 1.5rem;
-      font-weight: 600;
-    }
-    .total-breakdown {
-      display: flex;
-      gap: 1.5rem;
-      font-size: 0.9rem;
-      flex-wrap: wrap;
-    }
-    .breakdown-item {
+      justify-content: space-around;
       text-align: center;
-    }
-    .breakdown-amount {
       font-weight: 600;
-      font-size: 1rem;
-    }
-    .breakdown-label {
-      opacity: 0.8;
-      font-size: 0.8rem;
-    }
-    .controls {
-      display: flex;
-      justify-content: space-between;
+      font-size: 14px;
       flex-wrap: wrap;
-      margin-bottom: 1.2rem;
-      gap: 1rem;
     }
-    select, button {
-      padding: 0.6rem 1rem;
-      font-size: 1rem;
-      border: 1px solid #ccc;
-      border-radius: 8px;
+
+    .topbar div {
+      flex: 1 1 150px;
+      margin: 4px 0;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 30px auto;
+      padding: 20px;
       background: white;
-      cursor: pointer;
+      border-radius: 12px;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.08);
     }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #1e293b;
+    }
+
     .entry {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: space-between;
-      padding: 1rem 0;
-      border-bottom: 1px solid #e0e0e0;
+      border-bottom: 1px solid #e2e8f0;
+      padding: 12px 0;
     }
-    .entry:last-child { border-bottom: none; }
-    .entry span {
-      flex: 1 1 45%;
-      margin: 6px 0;
-      font-size: 0.97rem;
-      line-height: 1.4;
+
+    .entry:last-child {
+      border-bottom: none;
     }
+
     .entry strong {
-      font-weight: 600;
-      color: #000;
+      color: #0f172a;
     }
-    @media (max-width: 600px) {
-      .total-bar, .controls {
-        flex-direction: column;
-        text-align: center;
-      }
-      .entry span {
-        flex: 1 1 100%;
-      }
+
+    .button {
+      background-color: #3b82f6;
+      color: white;
+      padding: 12px 16px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 600;
+      display: block;
+      margin: 30px auto 0;
+    }
+
+    .button:hover {
+      background-color: #2563eb;
     }
   </style>
 </head>
 <body>
-  <h1>KMO FRESHERS DAY - Summary</h1>
 
-  <div class="summary">
-    <div class="total-bar">
-      <div class="total-main" id="totalMain">Total: ₹0</div>
-      <div class="total-breakdown" id="totalBreakdown">
-        <div class="breakdown-item">
-          <div class="breakdown-amount" id="scienceTotal">₹0</div>
-          <div class="breakdown-label">Science</div>
-        </div>
-        <div class="breakdown-item">
-          <div class="breakdown-amount" id="commerceTotal">₹0</div>
-          <div class="breakdown-label">Commerce</div>
-        </div>
-        <div class="breakdown-item">
-          <div class="breakdown-amount" id="humanitiesTotal">₹0</div>
-          <div class="breakdown-label">Humanities</div>
-        </div>
-      </div>
-    </div>
+  <div class="topbar" id="summaryBar">
+    <div>Total Collected: ₹<span id="totalCollected">0</span></div>
+    <div>Total Spent: ₹<span id="totalSpent">0</span></div>
+    <div>Remaining: ₹<span id="remaining">0</span></div>
+  </div>
 
-    <div class="controls">
-      <select id="streamFilter">
-        <option value="All">All Streams</option>
-        <option value="Science">Science</option>
-        <option value="Commerce">Commerce</option>
-        <option value="Humanities">Humanities</option>
-      </select>
-      <button onclick="exportToExcel()">Export to Excel</button>
-    </div>
-
-    <div id="entryList"></div>
+  <div class="container">
+    <h2>Spending Summary</h2>
+    <div id="summaryList"></div>
+    <button class="button" onclick="exportToExcel()">Export to Excel</button>
   </div>
 
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
-    import { getFirestore, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import {
+      getFirestore, collection, getDocs
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAOKKVp7hgeM_o563UJ1SmcJBIgzL50_HM",
       authDomain: "cash-entry-19c6c.firebaseapp.com",
       projectId: "cash-entry-19c6c",
-      storageBucket: "cash-entry-19c6c.firebasestorage.app",
+      storageBucket: "cash-entry-19c6c.appspot.com",
       messagingSenderId: "193833436019",
       appId: "1:193833436019:web:5f9d119a75fd2974ca3b06",
       measurementId: "G-KFJFRPWP04"
@@ -159,89 +108,62 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
+    const spendRef = collection(db, "spend");
+    const collectionRef = collection(db, "entries");
 
-    const entryList = document.getElementById("entryList");
-    const streamFilter = document.getElementById("streamFilter");
-    const totalMain = document.getElementById("totalMain");
-    const scienceTotal = document.getElementById("scienceTotal");
-    const commerceTotal = document.getElementById("commerceTotal");
-    const humanitiesTotal = document.getElementById("humanitiesTotal");
+    let spendingData = [];
 
-    let entriesData = [];
+    async function loadSummary() {
+      const spendSnap = await getDocs(spendRef);
+      let totalSpent = 0;
+      let listHTML = "";
 
-    async function fetchEntries() {
-      const q = query(collection(db, "entries"), orderBy("timestamp", "desc"));
-      const snapshot = await getDocs(q);
-      entriesData = snapshot.docs.map(doc => doc.data());
-      renderEntries();
-    }
+      spendSnap.forEach((doc) => {
+        const data = doc.data();
+        spendingData.push({
+          description: data.description,
+          spentBy: data.spentBy,
+          place: data.place,
+          amount: data.amount
+        });
 
-    function updateTotalBar() {
-      const filter = streamFilter.value;
-
-      const streamTotals = { Science: 0, Commerce: 0, Humanities: 0 };
-
-      entriesData.forEach(entry => {
-        if (streamTotals.hasOwnProperty(entry.stream)) {
-          streamTotals[entry.stream] += entry.amount || 0;
-        }
+        listHTML += `
+          <div class="entry">
+            <strong>${data.spentBy}</strong> spent ₹${data.amount} for "${data.description}" at ${data.place}
+          </div>`;
+        totalSpent += Number(data.amount);
       });
 
-      scienceTotal.textContent = `₹${streamTotals.Science.toLocaleString()}`;
-      commerceTotal.textContent = `₹${streamTotals.Commerce.toLocaleString()}`;
-      humanitiesTotal.textContent = `₹${streamTotals.Humanities.toLocaleString()}`;
+      document.getElementById("summaryList").innerHTML = listHTML;
+      document.getElementById("totalSpent").textContent = totalSpent;
 
-      const grandTotal = streamTotals.Science + streamTotals.Commerce + streamTotals.Humanities;
-      totalMain.textContent = (filter === "All")
-        ? `Total: ₹${grandTotal.toLocaleString()}`
-        : `${filter}: ₹${streamTotals[filter].toLocaleString()}`;
-    }
-
-    function renderEntries() {
-      const filter = streamFilter.value;
-      entryList.innerHTML = "";
-
-      const filtered = entriesData.filter(entry => filter === "All" || entry.stream === filter);
-
-      filtered.forEach((data, index) => {
-        const div = document.createElement("div");
-        div.className = "entry";
-        div.innerHTML = `
-          <span><strong>${index + 1}. ${data.name}</strong> paid ₹${data.amount}</span>
-          <span>${data.stream} | ${data.mode}</span>
-          <span>Received by: <strong>${data.receiver}</strong></span>
-          <span style="color:#555;">${new Date(data.timestamp).toLocaleString()}</span>
-        `;
-        entryList.appendChild(div);
+      // Now get collected
+      const collectSnap = await getDocs(collectionRef);
+      let totalCollected = 0;
+      collectSnap.forEach((doc) => {
+        const data = doc.data();
+        totalCollected += Number(data.amount);
       });
 
-      updateTotalBar();
+      document.getElementById("totalCollected").textContent = totalCollected;
+      document.getElementById("remaining").textContent = totalCollected - totalSpent;
     }
 
-    streamFilter.addEventListener("change", renderEntries);
+    loadSummary();
 
     window.exportToExcel = function () {
-      const filter = streamFilter.value;
-      const filtered = entriesData.filter(entry => filter === "All" || entry.stream === filter);
+      const ws_data = [
+        ['Description', 'Spent By', 'Place', 'Amount']
+      ];
+      spendingData.forEach(entry => {
+        ws_data.push([entry.description, entry.spentBy, entry.place, entry.amount]);
+      });
 
-      const rows = filtered.map((entry, index) => ({
-        "No.": index + 1,
-        "Name": entry.name,
-        "Amount": entry.amount,
-        "Stream": entry.stream,
-        "Mode": entry.mode,
-        "Receiver": entry.receiver,
-        "Timestamp": new Date(entry.timestamp).toLocaleString()
-      }));
-
-      const ws = XLSX.utils.json_to_sheet(rows);
       const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, "Entries");
-
-      XLSX.writeFile(wb, `KMO_Entries_${filter}.xlsx`);
+      const ws = XLSX.utils.aoa_to_sheet(ws_data);
+      XLSX.utils.book_append_sheet(wb, ws, "Spending Summary");
+      XLSX.writeFile(wb, "SpendingSummary.xlsx");
     };
-
-    fetchEntries();
   </script>
 </body>
 </html>
