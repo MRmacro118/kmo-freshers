@@ -30,16 +30,16 @@
       display: flex;
       flex-direction: column;
     }
-    label {
-      margin-bottom: 6px;
-      font-weight: 600;
-    }
     input, select, textarea {
-      padding: 10px;
+      padding: 12px;
       margin-bottom: 16px;
       border: 1px solid #ccc;
-      border-radius: 6px;
+      border-radius: 10px;
       font-size: 16px;
+    }
+    input::placeholder,
+    textarea::placeholder {
+      color: #888;
     }
     button {
       padding: 12px;
@@ -47,7 +47,7 @@
       color: white;
       font-size: 16px;
       border: none;
-      border-radius: 6px;
+      border-radius: 10px;
       cursor: pointer;
       margin-top: 10px;
     }
@@ -72,12 +72,10 @@
   <div class="container">
     <h1>Spending Entry</h1>
     <form id="spendForm">
-      <label for="description">What was the money used for?</label>
-      <textarea id="description" rows="3" placeholder="e.g. Decoration items, snacks..." required></textarea>
+      <textarea id="description" rows="3" placeholder="What was the money used for?" required></textarea>
 
-      <label for="spender">Who spent it?</label>
       <select id="spender" required>
-        <option value="">-- Select Spender --</option>
+        <option value="" disabled selected>Who spent it?</option>
         <option value="shibil">Shibil</option>
         <option value="navaf">Navaf</option>
         <option value="ajas">Ajas</option>
@@ -88,11 +86,9 @@
         <option value="salman">Salman</option>
       </select>
 
-      <label for="place">Where was it bought?</label>
-      <input type="text" id="place" placeholder="e.g. Lulu, local shop" required />
+      <input type="text" id="place" placeholder="Where was it bought?" required />
 
-      <label for="amount">How much was spent?</label>
-      <input type="number" id="amount" placeholder="e.g. 250" required />
+      <input type="number" id="amount" placeholder="How much was spent?" required />
 
       <button type="submit">Submit Spending</button>
     </form>
