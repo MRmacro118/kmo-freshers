@@ -3,9 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>KMO FRESHERS DAY</title>
+  <title>Spending Summary</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
-  <link rel="shortcut icon" href="favicon.png" type="image/x-icon">
   <style>
     * {
       box-sizing: border-box;
@@ -17,124 +16,90 @@
       padding: 0;
       display: flex;
       justify-content: center;
-      align-items: center;
-      height: 100vh;
+      align-items: flex-start;
+      min-height: 100vh;
     }
-    .form-container {
+    .container {
       background-color: #fff;
+      margin-top: 40px;
       padding: 24px;
       border-radius: 12px;
       box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
       width: 100%;
-      max-width: 500px;
+      max-width: 720px;
     }
-    h1 {
-      text-align: center;
-      color: #1f2937;
-      margin-bottom: 20px;
-    }
-    form {
-      display: flex;
-      flex-direction: column;
-    }
-    label {
-      font-weight: 600;
-      margin-bottom: 6px;
-    }
-    input, select {
-      padding: 12px;
-      margin-bottom: 16px;
-      border: 1px solid #d1d5db;
-      border-radius: 8px;
-      font-size: 14px;
-      background-color: #f9fafb;
-    }
-    button {
-      padding: 12px;
-      background-color: #4CAF50;
+    .summary-bar {
+      background-color: #22c55e;
       color: white;
-      font-size: 16px;
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      text-align: center;
+      font-weight: bold;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    th, td {
+      padding: 12px;
+      border-bottom: 1px solid #e5e7eb;
+      text-align: left;
+      font-size: 14px;
+    }
+    th {
+      background-color: #f3f4f6;
+    }
+    .button {
+      padding: 10px 16px;
+      background-color: #3b82f6;
+      color: white;
       font-weight: bold;
       border: none;
       border-radius: 8px;
       cursor: pointer;
-      margin-top: 10px;
-    }
-    button:hover {
-      background-color: #45a049;
-    }
-    .link-summary {
-      text-align: center;
+      font-size: 14px;
+      transition: background-color 0.2s;
       margin-top: 20px;
-      font-weight: 600;
+      width: 100%;
     }
-    .link-summary a {
-      color: #4CAF50;
-      text-decoration: none;
-    }
-    .link-summary a:hover {
-      text-decoration: underline;
+    .button:hover {
+      background-color: #2563eb;
     }
   </style>
 </head>
 <body>
-  <div class="form-container">
-    <h1>KMO Cash Entry</h1>
-    <form id="cashForm">
-      <label for="name">Name</label>
-      <input type="text" id="name" required />
-
-      <label for="stream">Stream</label>
-      <select id="stream" required>
-        <option value="">-- Select Stream --</option>
-        <option value="Science">Science</option>
-        <option value="Commerce">Commerce</option>
-        <option value="Humanities">Humanities</option>
-      </select>
-
-      <label for="mode">Payment Mode</label>
-      <select id="mode" required>
-        <option value="">-- Select Mode --</option>
-        <option value="Cash">Cash</option>
-        <option value="GPay">GPay</option>
-        <option value="PhonePe">PhonePe</option>
-        <option value="Paytm">Paytm</option>
-        <option value="Other">Other</option>
-      </select>
-
-      <label for="amount">Amount</label>
-      <input type="number" id="amount" required />
-
-      <label for="receiver">Received By</label>
-      <select id="receiver" required>
-        <option value="">-- Select Receiver --</option>
-        <option value="shibil">Shibil</option>
-        <option value="navaf">Navaf</option>
-        <option value="ajas">Ajas</option>
-        <option value="minhaj">Minhaj</option>
-        <option value="hashir">Hashir</option>
-        <option value="Bessy">Bessy - Miss</option>
-        <option value="Dilsha">Dilsha - Miss</option>
-        <option value="salman">Salman</option>
-      </select>
-
-      <button type="submit">Submit Entry</button>
-    </form>
-
-    <div class="link-summary">
-      <a href="summary.html">View Summary →</a>
+  <div class="container">
+    <div id="summaryBar" class="summary-bar">
+      💰 Collected: ₹0 | 💸 Spent: ₹0 | 💼 Balance: ₹0
     </div>
+
+    <table id="spendingTable">
+      <thead>
+        <tr>
+          <th>Description</th>
+          <th>Spender</th>
+          <th>Place</th>
+          <th>Amount</th>
+          <th>Date</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <button class="button" onclick="exportToExcel()">📤 Export to Excel</button>
   </div>
 
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getFirestore, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAOKKVp7hgeM_o563UJ1SmcJBIgzL50_HM",
       authDomain: "cash-entry-19c6c.firebaseapp.com",
       projectId: "cash-entry-19c6c",
-      storageBucket: "cash-entry-19c6c.firebasestorage.app",
+      storageBucket: "cash-entry-19c6c.appspot.com",
       messagingSenderId: "193833436019",
       appId: "1:193833436019:web:5f9d119a75fd2974ca3b06",
       measurementId: "G-KFJFRPWP04"
@@ -143,34 +108,55 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    const form = document.getElementById('cashForm');
+    const collectedTotal = 18850;
+    let totalSpent = 0;
 
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
+    async function loadSpendings() {
+      const q = query(collection(db, "spendings"), orderBy("timestamp", "desc"));
+      const snapshot = await getDocs(q);
+      const tableBody = document.querySelector("#spendingTable tbody");
 
-      const name = document.getElementById('name').value.trim();
-      const stream = document.getElementById('stream').value;
-      const mode = document.getElementById('mode').value;
-      const amount = parseFloat(document.getElementById('amount').value);
-      const receiver = document.getElementById('receiver').value;
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        const row = document.createElement("tr");
 
-      try {
-        await addDoc(collection(db, 'entries'), {
-          name,
-          stream,
-          mode,
-          amount,
-          receiver,
-          timestamp: serverTimestamp()
-        });
+        const date = data.timestamp?.toDate()?.toLocaleString() || "N/A";
+        row.innerHTML = `
+          <td>${data.description}</td>
+          <td>${data.spender}</td>
+          <td>${data.place}</td>
+          <td>₹${data.amount}</td>
+          <td>${date}</td>
+        `;
+        totalSpent += data.amount;
+        tableBody.appendChild(row);
+      });
 
-        form.reset();
-        alert('Entry submitted!');
-      } catch (error) {
-        console.error("Error adding document:", error);
-        alert('Something went wrong. Please try again.');
+      const balance = collectedTotal - totalSpent;
+      document.getElementById("summaryBar").textContent = `💰 Collected: ₹${collectedTotal} | 💸 Spent: ₹${totalSpent} | 💼 Balance: ₹${balance}`;
+    }
+
+    loadSpendings();
+
+    function exportToExcel() {
+      const table = document.getElementById("spendingTable");
+      let csv = '';
+      for (let row of table.rows) {
+        let rowData = [];
+        for (let cell of row.cells) {
+          rowData.push(`"${cell.innerText}"`);
+        }
+        csv += rowData.join(",") + "\n";
       }
-    });
+
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'spending-summary.csv';
+      a.click();
+      URL.revokeObjectURL(url);
+    }
   </script>
 </body>
 </html>
