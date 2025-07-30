@@ -3,156 +3,148 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Spending Summary</title>
+  <title>KMO Spending Entry</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <script type="module" src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js"></script>
+  <script type="module" src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js"></script>
   <style>
-    * {
-      box-sizing: border-box;
-    }
-
     body {
       font-family: 'Inter', sans-serif;
-      background: #f0f2f5;
+      background: #f8f9fa;
       margin: 0;
-      padding: 1.5rem;
-      color: #333;
+      padding: 20px;
     }
-
+    .container {
+      max-width: 500px;
+      margin: 0 auto;
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
     h1 {
       text-align: center;
-      font-size: 1.75rem;
-      margin-bottom: 1.5rem;
-      color: #222;
+      margin-bottom: 24px;
     }
-
-    .summary {
-      background: #fff;
-      padding: 1.5rem;
-      border-radius: 12px;
-      max-width: 900px;
-      margin: 0 auto;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
-    }
-
-    .total-bar {
-      background: linear-gradient(90deg, #4caf50, #43a047);
-      color: white;
-      padding: 1rem 1.5rem;
-      border-radius: 8px;
-      margin-bottom: 1.5rem;
+    form {
       display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 1rem;
+      flex-direction: column;
     }
-
-    .total-main {
-      font-size: 1.5rem;
+    label {
+      margin-bottom: 6px;
       font-weight: 600;
     }
-
-    .controls {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: space-between;
-      margin-bottom: 1rem;
-      gap: 1rem;
-    }
-
-    .entry {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: space-between;
-      padding: 1rem 0;
-      border-bottom: 1px solid #e0e0e0;
-    }
-
-    .entry:last-child {
-      border-bottom: none;
-    }
-
-    .entry span {
-      flex: 1 1 45%;
-      margin: 6px 0;
-      font-size: 0.97rem;
-      line-height: 1.4;
-    }
-
-    .entry strong {
-      font-weight: 600;
-      color: #000;
-    }
-
-    img {
-      max-width: 80px;
+    input, select, textarea {
+      padding: 10px;
+      margin-bottom: 16px;
+      border: 1px solid #ccc;
       border-radius: 6px;
-      margin-top: 0.5rem;
+      font-size: 16px;
     }
-
-    @media (max-width: 600px) {
-      .entry span {
-        flex: 1 1 100%;
-      }
-      .controls {
-        flex-direction: column;
-      }
+    button {
+      padding: 12px;
+      background-color: #4CAF50;
+      color: white;
+      font-size: 16px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    .link-summary {
+      text-align: center;
+      margin-top: 20px;
+      font-weight: 600;
+    }
+    .link-summary a {
+      color: #4CAF50;
+      text-decoration: none;
+    }
+    .link-summary a:hover {
+      text-decoration: underline;
     }
   </style>
 </head>
 <body>
-  <h1>Spending Summary</h1>
-  <div class="summary">
-    <div class="total-bar">
-      <div class="total-main" id="totalSpent">Total Spent: ₹0</div>
+  <div class="container">
+    <h1>Spending Entry</h1>
+    <form id="spendForm">
+      <label for="description">What was the money used for?</label>
+      <textarea id="description" rows="3" placeholder="e.g. Decoration items, snacks..." required></textarea>
+
+      <label for="spender">Who spent it?</label>
+      <select id="spender" required>
+        <option value="">-- Select Spender --</option>
+        <option value="shibil">Shibil</option>
+        <option value="navaf">Navaf</option>
+        <option value="ajas">Ajas</option>
+        <option value="minhaj">Minhaj</option>
+        <option value="hashir">Hashir</option>
+        <option value="Bessy">Bessy - Miss</option>
+        <option value="Dilsha">Dilsha - Miss</option>
+        <option value="salman">Salman</option>
+      </select>
+
+      <label for="place">Where was it bought?</label>
+      <input type="text" id="place" placeholder="e.g. Lulu, local shop" required />
+
+      <label for="amount">How much was spent?</label>
+      <input type="number" id="amount" placeholder="e.g. 250" required />
+
+      <button type="submit">Submit Spending</button>
+    </form>
+
+    <div class="link-summary">
+      <a href="spend-summary.html">View Spending Summary →</a>
     </div>
-    <div id="spendingList"></div>
   </div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
-    import { getFirestore, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAOKKVp7hgeM_o563UJ1SmcJBIgzL50_HM",
       authDomain: "cash-entry-19c6c.firebaseapp.com",
       projectId: "cash-entry-19c6c",
-      storageBucket: "cash-entry-19c6c.appspot.com",
+      storageBucket: "cash-entry-19c6c.firebasestorage.app",
       messagingSenderId: "193833436019",
-      appId: "1:193833436019:web:5f9d119a75fd2974ca3b06"
+      appId: "1:193833436019:web:5f9d119a75fd2974ca3b06",
+      measurementId: "G-KFJFRPWP04"
     };
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    const spendingList = document.getElementById("spendingList");
-    const totalSpent = document.getElementById("totalSpent");
+    const form = document.getElementById('spendForm');
 
-    async function loadSpendings() {
-      const q = query(collection(db, "spending"), orderBy("timestamp", "desc"));
-      const snapshot = await getDocs(q);
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
 
-      let total = 0;
-      snapshot.forEach((doc, index) => {
-        const data = doc.data();
-        total += data.amount || 0;
+      const spender = document.getElementById('spender').value;
+      const description = document.getElementById('description').value.trim();
+      const place = document.getElementById('place').value.trim();
+      const amount = parseFloat(document.getElementById('amount').value);
 
-        const div = document.createElement("div");
-        div.className = "entry";
-        div.innerHTML = `
-          <span><strong>${index + 1}. ${data.description || 'No description'}</strong></span>
-          <span>Amount: ₹${data.amount}</span>
-          <span>Spent by: <strong>${data.spentBy || 'Unknown'}</strong></span>
-          <span>Place: ${data.place || 'N/A'}</span>
-          <span>Date: ${data.timestamp ? new Date(data.timestamp).toLocaleString() : 'N/A'}</span>
-        `;
-        spendingList.appendChild(div);
-      });
+      try {
+        await addDoc(collection(db, 'expenses'), {
+          spender,
+          description,
+          place,
+          amount,
+          timestamp: serverTimestamp()
+        });
 
-      totalSpent.textContent = `Total Spent: ₹${total.toLocaleString()}`;
-    }
-
-    loadSpendings();
+        form.reset();
+        alert('Spending recorded!');
+      } catch (error) {
+        console.error("Error adding document:", error);
+        alert('Something went wrong. Please try again.');
+      }
+    });
   </script>
 </body>
 </html>
