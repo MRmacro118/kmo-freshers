@@ -3,8 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>KMO FRESHERS DAY - Collection Closed</title>
+  <title>KMO FRESHERS DAY - Total Collected</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <script type="module" src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js"></script>
+  <script type="module" src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js"></script>
   <link rel="shortcut icon" href="favicon.png" type="image/x-icon">
   <style>
     body {
@@ -55,10 +57,49 @@
 </head>
 <body>
   <div class="container">
-    <h1>Cash Collection Closed</h1>
-    <p class="note">Thank you for your participation!</p>
-    <div class="amount">₹18,850 Collected</div>
+    <h1>Cash Collection Status</h1>
+    <p class="note">Thank you for your support!</p>
+    <div class="amount" id="totalAmount">Loading...</div>
     <a href="summary.html" class="summary-btn">View Summary</a>
   </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
+    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAOKKVp7hgeM_o563UJ1SmcJBIgzL50_HM",
+      authDomain: "cash-entry-19c6c.firebaseapp.com",
+      projectId: "cash-entry-19c6c",
+      storageBucket: "cash-entry-19c6c.firebasestorage.app",
+      messagingSenderId: "193833436019",
+      appId: "1:193833436019:web:5f9d119a75fd2974ca3b06",
+      measurementId: "G-KFJFRPWP04"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const totalAmountEl = document.getElementById("totalAmount");
+
+    async function fetchTotalAmount() {
+      try {
+        const snapshot = await getDocs(collection(db, "entries"));
+        let total = 0;
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          if (data.amount) {
+            total += data.amount;
+          }
+        });
+        totalAmountEl.textContent = `₹${total.toLocaleString()}`;
+      } catch (error) {
+        console.error("Error fetching total amount:", error);
+        totalAmountEl.textContent = "Error loading total";
+      }
+    }
+
+    fetchTotalAmount();
+  </script>
 </body>
 </html>
