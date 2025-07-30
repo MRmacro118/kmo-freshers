@@ -72,7 +72,10 @@
   <div class="container">
     <h1>Spending Entry</h1>
     <form id="spendForm">
-      <label for="spender">Spent By</label>
+      <label for="description">What was the money used for?</label>
+      <textarea id="description" rows="3" placeholder="e.g. Decoration items, snacks..." required></textarea>
+
+      <label for="spender">Who spent it?</label>
       <select id="spender" required>
         <option value="">-- Select Spender --</option>
         <option value="shibil">Shibil</option>
@@ -85,14 +88,11 @@
         <option value="salman">Salman</option>
       </select>
 
-      <label for="description">Description</label>
-      <textarea id="description" rows="3" required></textarea>
+      <label for="place">Where was it bought?</label>
+      <input type="text" id="place" placeholder="e.g. Lulu, local shop" required />
 
-      <label for="place">Place of Purchase</label>
-      <input type="text" id="place" required />
-
-      <label for="amount">Amount Spent</label>
-      <input type="number" id="amount" required />
+      <label for="amount">How much was spent?</label>
+      <input type="number" id="amount" placeholder="e.g. 250" required />
 
       <button type="submit">Submit Spending</button>
     </form>
